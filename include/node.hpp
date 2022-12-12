@@ -9,8 +9,7 @@ class Node {
 
 class VPTree {
   Node root_;
-  std::vector<DataPoint> getRandomSubset_(const std::vector<DataPoint> &points,
-                                          int cardinality);
+  int getVantagePoint_(const std::vector<DataPoint> &points);
 
  public:
   void createTree(const std::vector<DataPoint> &points);
