@@ -1,11 +1,14 @@
 #pragma once
+#include <memory>
+
 #include "math.hpp"
 
-struct Node {
+class Node {
+public:
   int id;
   double mu;
-  Node *leftChild;
-  Node *rightChild;
+  std::shared_ptr<Node> leftChild;
+  std::shared_ptr<Node> rightChild;
 };
 
 struct SplitVector {
@@ -16,15 +19,18 @@ struct SplitVector {
 };
 
 class VPTree {
-  Node *root_;
-  int getVantagePointIndex_(const std::vector<DataPoint> &points);
+  std::shared_ptr<Node> root_;
+  int getVantagePointIndex_(const std::vector<DataPoint> &points,
+                            const std::vector<int> &global_indices);
   double getDistMedian_(const std::vector<DataPoint> &points,
                         int vantage_point_idx);
   SplitVector splitPointsVector_(const std::vector<DataPoint> &points,
                                  int vantage_point_idx, int mu);
-  void createRecursiveTree_(Node *sub_root,
-                            const std::vector<DataPoint> &points);
+  void createRecursiveTree_(std::shared_ptr<Node> sub_root,
+                            const std::vector<DataPoint> &points,
+                            const std::vector<int> &global_indices);
 
  public:
+  VPTree();
   void createTree(const std::vector<DataPoint> &points);
 };

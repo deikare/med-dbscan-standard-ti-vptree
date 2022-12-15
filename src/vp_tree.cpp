@@ -1,17 +1,24 @@
-#include "node.hpp"
+#include "vp_tree.hpp"
 
 #include <algorithm>
 
 #include "consts.hpp"
 
+VPTree::VPTree() {root_ = std::make_shared<Node>();}
+
 void VPTree::createTree(const std::vector<DataPoint> &points) {
-  createRecursiveTree_(root_, points);
+  std::vector<int> primary_indices;
+  primary_indices.resize(points.size());
+  std::iota(primary_indices.begin(), primary_indices.end(), 0);
+  createRecursiveTree_(root_, points, primary_indices);
 }
 
-void VPTree::createRecursiveTree_(Node *sub_root,
-                                  const std::vector<DataPoint> &points) {
+void VPTree::createRecursiveTree_(std::shared_ptr<Node> sub_root,
+                                  const std::vector<DataPoint> &points,
+                                  const std::vector<int> &global_indices) {
   std::vector<DataPoint> processed_points = points;
-  auto vantage_point_idx = getVantagePointIndex_(processed_points);
+  auto vantage_point_idx =
+      getVantagePointIndex_(processed_points, global_indices);
 
   // getDistMedian_ needs to be called before removing vantage point from vector
   auto mu = getDistMedian_(processed_points, vantage_point_idx);
@@ -22,20 +29,23 @@ void VPTree::createRecursiveTree_(Node *sub_root,
   processed_points.erase(processed_points.begin() + vantage_point_idx);
 
   if (splitted_vectors.leftVector.size() > 0)
-    createRecursiveTree_(sub_root->leftChild, splitted_vectors.leftVector);
+    createRecursiveTree_(sub_root->leftChild, splitted_vectors.leftVector,
+                         splitted_vectors.leftIndices);
   if (splitted_vectors.rightVector.size() > 0)
-    createRecursiveTree_(sub_root->rightChild, splitted_vectors.rightVector);
+    createRecursiveTree_(sub_root->rightChild, splitted_vectors.rightVector,
+                         splitted_vectors.rightIndices);
 }
 
-int VPTree::getVantagePointIndex_(const std::vector<DataPoint> &points) {
-  auto indices = math::getRandNonRepeatingIntVec(
+int VPTree::getVantagePointIndex_(const std::vector<DataPoint> &points,
+                                  const std::vector<int> &global_indices) {
+  auto rand_indices = math::getRandNonRepeatingIntVec(
       0, points.size() - 1,
       VP_CONST::A_SUBSET_CARDINALITY + VP_CONST::B_SUBSET_CARDINALITY);
   // random indices for two sets
-  std::vector A_indices(indices.begin(),
-                        indices.begin() + VP_CONST::A_SUBSET_CARDINALITY);
-  std::vector B_indices(indices.begin() + VP_CONST::A_SUBSET_CARDINALITY,
-                        indices.end());
+  std::vector A_indices(rand_indices.begin(),
+                        rand_indices.begin() + VP_CONST::A_SUBSET_CARDINALITY);
+  std::vector B_indices(rand_indices.begin() + VP_CONST::A_SUBSET_CARDINALITY,
+                        rand_indices.end());
 
   std::vector<double> distances_vec;
   std::vector<double> variances_vec;
@@ -55,7 +65,7 @@ int VPTree::getVantagePointIndex_(const std::vector<DataPoint> &points) {
       std::max_element(variances_vec.begin(), variances_vec.end()));
 
   // returning global (primary) index of highest variance point
-  return A_indices.at(max_id);
+  return global_indices.at(max_id);
 }
 
 double VPTree::getDistMedian_(const std::vector<DataPoint> &points,
