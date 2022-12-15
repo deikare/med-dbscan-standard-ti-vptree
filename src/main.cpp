@@ -15,7 +15,10 @@ bool check_file(std::string file_name) {
 
 int main(int argc, char* argv[]) {
   auto parser = Parser(argc, argv);
-  if (parser.cmdOptionExists("-h")) parser.printHelp();
+  if (parser.cmdOptionExists("-h")) {
+    parser.printHelp();
+    return 0;
+  }
   if (!parser.allArgsSet()) return 1;
 
   auto csv_reader = CSVReader();

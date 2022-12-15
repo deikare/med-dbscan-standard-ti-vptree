@@ -11,7 +11,9 @@ project(
 
 add_executable(${PROJECT} ${CPP_DIR}/main.cpp
                           ${CPP_DIR}/parser.cpp
-                          ${CPP_DIR}/reader.cpp)
+                          ${CPP_DIR}/reader.cpp
+                          ${CPP_DIR}/math.cpp
+                          ${CPP_DIR}/node.cpp)
 
 target_include_directories(${PROJECT} PRIVATE include)
 

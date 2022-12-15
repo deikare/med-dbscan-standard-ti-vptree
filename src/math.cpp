@@ -1,6 +1,5 @@
 #include "math.hpp"
 
-#include <algorithm>
 #include <stdexcept>
 
 double math::minkowskiDist(const DataPoint &point1, const DataPoint &point2,
