@@ -6,9 +6,9 @@ double math::minkowskiDist(const DataPoint &point1, const DataPoint &point2,
                            double m) {
   double sum = 0;
   for (int i = 0; i < point1.size(); ++i) {
-    sum += abs(pow((point1[i] - point2[i]), m));
+    sum += std::abs(std::pow((point1[i] - point2[i]), m));
   }
-  sum = pow(sum, 1. / m);
+  sum = std::pow(sum, 1. / m);
   return sum;
 }
 
@@ -32,7 +32,7 @@ double math::calculateVariance(const std::vector<double> &points) {
 }
 
 std::vector<int> math::getRandNonRepeatingIntVec(int min, int max, int size) {
-  if (size - 1 > max - min) throw std::runtime_error("sizes not correct");
+  if (!(max - min > size - 1)) throw std::runtime_error("sizes not correct");
   std::vector<int> rand_vec;
   int num;
   for (int i = 0; i < size; ++i) {
