@@ -4,11 +4,13 @@
 #include "math.hpp"
 
 class Node {
-public:
-  int id;
+ public:
+  int id;  // global index of the point
   double mu;
   std::shared_ptr<Node> leftChild;
   std::shared_ptr<Node> rightChild;
+  void createLeftNode() { leftChild = std::make_shared<Node>(); };
+  void createRightNode() { rightChild = std::make_shared<Node>(); };
 };
 
 struct SplitVector {
@@ -20,17 +22,18 @@ struct SplitVector {
 
 class VPTree {
   std::shared_ptr<Node> root_;
-  int getVantagePointIndex_(const std::vector<DataPoint> &points,
-                            const std::vector<int> &global_indices);
+  /** @brief Method returns local vantage point index */
+  int getVantagePointIndex_(const std::vector<DataPoint> &points);
   double getDistMedian_(const std::vector<DataPoint> &points,
-                        int vantage_point_idx);
+                        int vantage_point_idx_local);
   SplitVector splitPointsVector_(const std::vector<DataPoint> &points,
-                                 int vantage_point_idx, int mu);
+                                 const std::vector<int> &global_indices,
+                                 int vantage_point_idx_local, int mu);
   void createRecursiveTree_(std::shared_ptr<Node> sub_root,
                             const std::vector<DataPoint> &points,
                             const std::vector<int> &global_indices);
 
  public:
-  VPTree();
+  VPTree(const std::vector<DataPoint> &points);
   void createTree(const std::vector<DataPoint> &points);
 };

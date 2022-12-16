@@ -28,7 +28,7 @@ auto CSVReader::getData(std::string filename, bool has_class_column,
   // data structures for saving data values and classes (if needed)
   std::vector<std::vector<double>> data;
   std::vector<double> classes;
-  
+
   // reading reamaining points
   while (getline(csv_file, processed_line)) {
     processed_row = stripLine_(processed_line);

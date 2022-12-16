@@ -1,7 +1,7 @@
+#include "parser.hpp"
+
 #include <algorithm>
 #include <iostream>
-
-#include "parser.hpp"
 
 std::string Parser::getCmdOption(const std::string& option) {
   auto start = argv_;

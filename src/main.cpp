@@ -33,8 +33,7 @@ int main(int argc, char* argv[]) {
 
   auto csv_reader = CSVReader();
   auto [data, classes] = csv_reader.getData(filename, true, ignore_lines);
-  VPTree tree;
-  tree.createTree(data);
+  VPTree vp_tree(data);
 
   return 0;
 }
