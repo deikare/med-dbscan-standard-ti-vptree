@@ -1,4 +1,8 @@
 # VS code settings
 /.vscode
 
+# c++ build directory 
 /build
+
+# python virtual environment 
+venv

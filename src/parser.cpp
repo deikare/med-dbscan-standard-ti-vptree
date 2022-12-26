@@ -1,10 +1,9 @@
+#include "parser.hpp"
+
 #include <algorithm>
 #include <iostream>
 
-#include "parser.hpp"
-
 std::string Parser::getCmdOption(const std::string& option) {
-  auto start = argv_;
   auto end = argv_ + argc_;
   char** itr = std::find(argv_, end, option);
   if (itr != end && ++itr != end) {

@@ -3,8 +3,8 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 class CSVReader {
   std::vector<double> stripLine_(std::string line);
