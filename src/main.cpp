@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "analyzer.hpp"
 #include "parser.hpp"
 #include "reader.hpp"
 #include "vp_tree.hpp"
@@ -15,6 +16,7 @@ bool check_file(std::string file_name) {
 }
 
 int main(int argc, char* argv[]) {
+  auto time_analyzer = TimeAnalyzer(TIME_PRESCALER::MILLI);
   auto parser = Parser(argc, argv);
   if (parser.cmdOptionExists("-h")) {
     parser.printHelp();
@@ -33,7 +35,10 @@ int main(int argc, char* argv[]) {
 
   auto csv_reader = CSVReader();
   auto [data, classes] = csv_reader.getData(filename, true, ignore_lines);
+  time_analyzer.saveDurationNow("reading csv");
   VPTree vp_tree(data);
+  time_analyzer.saveDurationNow("building VP tree");
+  time_analyzer.printRaport();
 
   return 0;
 }
