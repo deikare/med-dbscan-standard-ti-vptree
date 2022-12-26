@@ -16,8 +16,8 @@ class Node {
 struct SplitVector {
   std::vector<DataPoint> leftVector;
   std::vector<DataPoint> rightVector;
-  std::vector<int> leftIndices;   // stores global left indices
-  std::vector<int> rightIndices;  // stores global right indices
+  std::vector<std::size_t> leftIndices;   // stores global left indices
+  std::vector<std::size_t> rightIndices;  // stores global right indices
 };
 
 class VPTree {
@@ -27,11 +27,11 @@ class VPTree {
   double getDistMedian_(const std::vector<DataPoint> &points,
                         int vantage_point_idx_local);
   SplitVector splitPointsVector_(const std::vector<DataPoint> &points,
-                                 const std::vector<int> &global_indices,
+                                 const std::vector<std::size_t> &global_indices,
                                  int vantage_point_idx_local, int mu);
-  void createRecursiveTree_(std::shared_ptr<Node> sub_root,
+  void createTreeRecursive_(std::shared_ptr<Node> sub_root,
                             const std::vector<DataPoint> &points,
-                            const std::vector<int> &global_indices);
+                            const std::vector<std::size_t> &global_indices);
 
  public:
   VPTree(const std::vector<DataPoint> &points);

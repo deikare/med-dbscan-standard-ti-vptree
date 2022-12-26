@@ -12,18 +12,18 @@ VPTree::VPTree(const std::vector<DataPoint> &points) {
 
 void VPTree::createTree(const std::vector<DataPoint> &points) {
   try {
-    std::vector<int> primary_indices;
+    std::vector<std::size_t> primary_indices;
     primary_indices.resize(points.size());
     std::iota(primary_indices.begin(), primary_indices.end(), 0);
-    createRecursiveTree_(root_, points, primary_indices);
+    createTreeRecursive_(root_, points, primary_indices);
   } catch (std::exception &ex) {
     std::cout << ex.what() << std::endl;
   }
 }
 
-void VPTree::createRecursiveTree_(std::shared_ptr<Node> sub_root,
-                                  const std::vector<DataPoint> &points,
-                                  const std::vector<int> &global_indices) {
+void VPTree::createTreeRecursive_(
+    std::shared_ptr<Node> sub_root, const std::vector<DataPoint> &points,
+    const std::vector<std::size_t> &global_indices) {
   std::vector<DataPoint> processed_points = points;
   auto vantage_point_idx_local = getVantagePointIndex_(processed_points);
   auto vantage_point_idx_global = global_indices.at(vantage_point_idx_local);
@@ -38,12 +38,12 @@ void VPTree::createRecursiveTree_(std::shared_ptr<Node> sub_root,
 
   if (splitted_vectors.leftVector.size() > 0) {
     sub_root->createLeftNode();
-    createRecursiveTree_(sub_root->leftChild, splitted_vectors.leftVector,
+    createTreeRecursive_(sub_root->leftChild, splitted_vectors.leftVector,
                          splitted_vectors.leftIndices);
   }
   if (splitted_vectors.rightVector.size() > 0) {
     sub_root->createRightNode();
-    createRecursiveTree_(sub_root->rightChild, splitted_vectors.rightVector,
+    createTreeRecursive_(sub_root->rightChild, splitted_vectors.rightVector,
                          splitted_vectors.rightIndices);
   }
 }
@@ -121,9 +121,10 @@ double VPTree::getDistMedian_(const std::vector<DataPoint> &points,
   return math::vectorMedian<double>(distances);
 }
 
-SplitVector VPTree::splitPointsVector_(const std::vector<DataPoint> &points,
-                                       const std::vector<int> &global_indices,
-                                       int vantage_point_idx_local, int mu) {
+SplitVector VPTree::splitPointsVector_(
+    const std::vector<DataPoint> &points,
+    const std::vector<std::size_t> &global_indices, int vantage_point_idx_local,
+    int mu) {
   SplitVector split_vectors;
   if (points.size() == 1) {
     return split_vectors;
