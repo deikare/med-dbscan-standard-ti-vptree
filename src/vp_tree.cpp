@@ -153,3 +153,47 @@ SplitVector VPTree::splitPointsVector_(
   }
   return split_vectors;
 }
+
+std::vector<std::size_t> VPTree::findNeighbours(
+    const std::vector<DataPoint> &points, std::size_t point_id,
+    double epsilon) {
+  if (point_id > points.size() - 1) {
+    throw std::runtime_error("point_id exceeds points size");
+  }
+  auto neighbours = findNeighboursRecursive_(root_, points, point_id, epsilon);
+  return neighbours;
+}
+
+std::vector<std::size_t> VPTree::findNeighboursRecursive_(
+    std::shared_ptr<Node> sub_root, const std::vector<DataPoint> &points,
+    std::size_t point_id, double epsilon) {
+  std::cout << "point ids: " << sub_root->id << " " << point_id << "\n";
+  auto dist = math::minkowskiDist(points.at(sub_root->id), points.at(point_id),
+                                  VP_CONST::MINKOWSKI_PARAM);
+  std::vector<std::size_t> neighbours;
+  if (dist <= epsilon) {
+    // operator '<=' because k+NN, if satisfied then current point should be
+    // added to k+NN
+    neighbours.push_back(sub_root->id);
+  }
+
+  // conditions in ifs below are logically reversed conditions from VP tree
+  // lectures
+  std::vector<std::size_t> left_neighbours;
+  if (dist - sub_root->mu < epsilon && sub_root->leftChild != nullptr) {
+    // condition to look in the left subtree
+    left_neighbours = findNeighboursRecursive_(sub_root->leftChild, points,
+                                               point_id, epsilon);
+  }
+  neighbours = concatenateVectors(neighbours, left_neighbours);
+
+  std::vector<std::size_t> right_neighbours;
+  if (sub_root->mu - dist <= epsilon && sub_root->rightChild != nullptr) {
+    // condition to look in the right subtree
+    right_neighbours = findNeighboursRecursive_(sub_root->rightChild, points,
+                                                point_id, epsilon);
+  }
+
+  neighbours = concatenateVectors(neighbours, right_neighbours);
+  return neighbours;
+}

@@ -32,8 +32,13 @@ class VPTree {
   void createTreeRecursive_(std::shared_ptr<Node> sub_root,
                             const std::vector<DataPoint> &points,
                             const std::vector<std::size_t> &global_indices);
+  std::vector<std::size_t> findNeighboursRecursive_(
+      std::shared_ptr<Node> sub_root, const std::vector<DataPoint> &points,
+      std::size_t point_id, double epsilon);
 
  public:
   VPTree(const std::vector<DataPoint> &points);
   void createTree(const std::vector<DataPoint> &points);
+  std::vector<std::size_t> findNeighbours(const std::vector<DataPoint> &points,
+                                          std::size_t point_id, double epsilon);
 };
