@@ -5,6 +5,15 @@
 
 #include "consts.hpp"
 
+template <typename T>
+std::vector<T> concatenateVectors(std::vector<T> A, std::vector<T> B) {
+  std::vector<T> concatenated;
+  concatenated.reserve(A.size() + B.size());  // preallocate memory
+  concatenated.insert(concatenated.end(), A.begin(), A.end());
+  concatenated.insert(concatenated.end(), B.begin(), B.end());
+  return concatenated;
+}
+
 VPTree::VPTree(const std::vector<DataPoint> &points) {
   root_ = std::make_shared<Node>();
   createTree(points);
@@ -88,8 +97,8 @@ int VPTree::getVantagePointIndex_(const std::vector<DataPoint> &points) {
   // alternative when subsets cardinality is too high for points.size()
   std::vector<double> distances_vec;
   std::vector<double> variances_vec;
-  for (int i = 0; i < points.size(); ++i) {
-    for (int j = 0; j < points.size(); ++j) {
+  for (std::size_t i = 0; i < points.size(); ++i) {
+    for (std::size_t j = 0; j < points.size(); ++j) {
       if (i != j) {
         auto dist = math::minkowskiDist(points.at(i), points.at(j),
                                         VP_CONST::MINKOWSKI_PARAM);
@@ -106,12 +115,12 @@ int VPTree::getVantagePointIndex_(const std::vector<DataPoint> &points) {
 }
 
 double VPTree::getDistMedian_(const std::vector<DataPoint> &points,
-                              int vantage_point_idx_local) {
+                              std::size_t vantage_point_idx_local) {
   if (points.size() == 1) {
     return 0;
   }
   std::vector<double> distances;
-  for (int i = 0; i < points.size(); ++i) {
+  for (std::size_t i = 0; i < points.size(); ++i) {
     if (i != vantage_point_idx_local) {
       auto dist = math::minkowskiDist(points.at(vantage_point_idx_local),
                                       points.at(i), VP_CONST::MINKOWSKI_PARAM);
@@ -123,13 +132,13 @@ double VPTree::getDistMedian_(const std::vector<DataPoint> &points,
 
 SplitVector VPTree::splitPointsVector_(
     const std::vector<DataPoint> &points,
-    const std::vector<std::size_t> &global_indices, int vantage_point_idx_local,
-    int mu) {
+    const std::vector<std::size_t> &global_indices,
+    std::size_t vantage_point_idx_local, int mu) {
   SplitVector split_vectors;
   if (points.size() == 1) {
     return split_vectors;
   }
-  for (int i = 0; i < points.size(); ++i) {
+  for (std::size_t i = 0; i < points.size(); ++i) {
     if (i != vantage_point_idx_local) {
       auto dist = math::minkowskiDist(points.at(vantage_point_idx_local),
                                       points.at(i), VP_CONST::MINKOWSKI_PARAM);

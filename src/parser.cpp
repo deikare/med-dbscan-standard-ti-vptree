@@ -4,7 +4,6 @@
 #include <iostream>
 
 std::string Parser::getCmdOption(const std::string& option) {
-  auto start = argv_;
   auto end = argv_ + argc_;
   char** itr = std::find(argv_, end, option);
   if (itr != end && ++itr != end) {

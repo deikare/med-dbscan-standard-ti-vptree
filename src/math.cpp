@@ -5,7 +5,7 @@
 double math::minkowskiDist(const DataPoint &point1, const DataPoint &point2,
                            double m) {
   double sum = 0;
-  for (int i = 0; i < point1.size(); ++i) {
+  for (std::size_t i = 0; i < point1.size(); ++i) {
     sum += std::abs(std::pow((point1[i] - point2[i]), m));
   }
   sum = std::pow(sum, 1. / m);
@@ -24,7 +24,7 @@ double math::calculateMean(const std::vector<double> &points) {
 double math::calculateVariance(const std::vector<double> &points) {
   double mean = calculateMean(points);
   double variance;
-  for (int i = 0; i < points.size(); ++i) {
+  for (std::size_t i = 0; i < points.size(); ++i) {
     variance += pow(points[i] - mean, 2);
   }
   variance /= points.size();

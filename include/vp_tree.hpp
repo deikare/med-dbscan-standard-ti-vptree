@@ -25,10 +25,10 @@ class VPTree {
   /** @brief Method returns local vantage point index */
   int getVantagePointIndex_(const std::vector<DataPoint> &points);
   double getDistMedian_(const std::vector<DataPoint> &points,
-                        int vantage_point_idx_local);
+                        std::size_t vantage_point_idx_local);
   SplitVector splitPointsVector_(const std::vector<DataPoint> &points,
                                  const std::vector<std::size_t> &global_indices,
-                                 int vantage_point_idx_local, int mu);
+                                 std::size_t vantage_point_idx_local, int mu);
   void createTreeRecursive_(std::shared_ptr<Node> sub_root,
                             const std::vector<DataPoint> &points,
                             const std::vector<std::size_t> &global_indices);
