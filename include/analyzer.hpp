@@ -4,19 +4,20 @@
 #include <string>
 #include <vector>
 
-typedef std::chrono::time_point<std::chrono::high_resolution_clock>
-    timestamp_t;
+typedef std::chrono::time_point<std::chrono::high_resolution_clock> timestamp_t;
 
 enum class TIME_PRESCALER { MILLI, MICRO };
 
 class TimeAnalyzer {
   const std::size_t SPACING_VAL = 30;
+  static const std::size_t FULL_ROW_LENGTH = 30;
   TIME_PRESCALER prescaler_;
 
   timestamp_t startTime_;
   std::vector<std::string> taskNames_;
   std::vector<int64_t> times_;
-  void printTimestamp_(std::string task_name, int64_t duration);
+  void printTimestamp_(std::string task_name, int64_t duration,
+                       std::size_t dash_length = FULL_ROW_LENGTH);
 
  public:
   TimeAnalyzer(TIME_PRESCALER prescaler = TIME_PRESCALER::MILLI) {

@@ -16,7 +16,7 @@ bool check_file(std::string file_name) {
 }
 
 int main(int argc, char* argv[]) {
-  auto time_analyzer = TimeAnalyzer(TIME_PRESCALER::MILLI);
+  auto time_analyzer = TimeAnalyzer(TIME_PRESCALER::MICRO);
   auto parser = Parser(argc, argv);
   if (parser.cmdOptionExists("-h")) {
     parser.printHelp();
@@ -41,9 +41,6 @@ int main(int argc, char* argv[]) {
   time_analyzer.saveDurationNow("building VP tree");
 
   auto vec = vp_tree.findNeighbours(data, 3, 2.);
-  for (auto v:vec){
-    std::cout << v << std::endl;
-  }
   time_analyzer.saveDurationNow("searching k-NN+ in VP tree");
 
   time_analyzer.printRaport();
