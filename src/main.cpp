@@ -36,8 +36,16 @@ int main(int argc, char* argv[]) {
   auto csv_reader = CSVReader();
   auto [data, classes] = csv_reader.getData(filename, true, ignore_lines);
   time_analyzer.saveDurationNow("reading csv");
+
   VPTree vp_tree(data);
   time_analyzer.saveDurationNow("building VP tree");
+
+  auto vec = vp_tree.findNeighbours(data, 3, 2.);
+  for (auto v:vec){
+    std::cout << v << std::endl;
+  }
+  time_analyzer.saveDurationNow("searching k-NN+ in VP tree");
+
   time_analyzer.printRaport();
 
   return 0;

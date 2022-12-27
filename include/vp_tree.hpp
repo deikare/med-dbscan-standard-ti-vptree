@@ -6,7 +6,7 @@
 /** @brief Class stores data of separate nodes of VP tree */
 class Node {
  public:
-  int id;  // global index of the point
+  size_t id;  // global index of the point
   double mu;
   std::shared_ptr<Node> leftChild;
   std::shared_ptr<Node> rightChild;
