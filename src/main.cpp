@@ -5,6 +5,8 @@
 #include "parser.hpp"
 #include "reader.hpp"
 #include "vp_tree.hpp"
+#include "dbscan.hpp"
+#include "math.hpp"
 
 bool check_file(std::string file_name) {
   std::ifstream input_stream;
@@ -42,6 +44,24 @@ int main(int argc, char* argv[]) {
 
   auto vec = vp_tree.findNeighbours(data, 3, 2.);
   time_analyzer.saveDurationNow("searching k-NN+ in VP tree");
+
+  auto distanceHandler = [](const std::vector<double>& point1, const std::vector<double>&point2) {
+      return math::minkowskiDist(point1, point2, 2);
+  };
+
+  auto dbscanResult = dbscan(data, distanceHandler, 2, 3);
+  std::string result;
+
+  for (const auto& entry : dbscanResult) {
+      result += "(";
+      for (auto attribute : entry.first)
+          result += std::to_string(attribute) + " ";
+      result.pop_back();
+      result += ")";
+      result += ": " + ((entry.second > 0)? std::to_string(entry.second): "noise") + "\n";
+  }
+
+  std::cout << result;
 
   time_analyzer.printRaport();
 

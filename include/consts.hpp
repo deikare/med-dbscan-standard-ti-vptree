@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 
 using DataPoint = std::vector<double>;
 
