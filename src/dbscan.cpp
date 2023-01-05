@@ -20,16 +20,14 @@ std::map<DataPoint, unsigned long> dbscan(const std::vector<DataPoint> & points,
             neighbourSet.erase(point);
             for (const auto& neighbour: neighbourSet) {
                 auto label = result.find(neighbour);
-                if (label != result.end()) {
-                    if (label->second == NOISE)
-                        label->second = clusterIndex;
-                }
-                else {
+                if (label == result.end()) {
                     result.emplace(neighbour, clusterIndex);
                     auto neighboursOfNeighbour = neighbours(neighbour, points, distanceHandler, eps);
                     if (neighboursOfNeighbour.size() >= minPts)
                         neighbourSet.merge(neighboursOfNeighbour);
                 }
+                else if (label->second == NOISE)
+                    label->second = clusterIndex;
             }
         }
     }

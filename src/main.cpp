@@ -49,19 +49,21 @@ int main(int argc, char* argv[]) {
       return math::minkowskiDist(point1, point2, 2);
   };
 
-  auto dbscanResult = dbscan(data, distanceHandler, 2, 3);
+  auto dbscanResult = dbscan(data, distanceHandler, 5, 6);
   std::string result;
 
   for (const auto& entry : dbscanResult) {
-      result += "(";
       for (auto attribute : entry.first)
-          result += std::to_string(attribute) + " ";
-      result.pop_back();
-      result += ")";
-      result += ": " + ((entry.second > 0)? std::to_string(entry.second): "noise") + "\n";
+          result += std::to_string(attribute) + ",";
+      result += ((entry.second > 0)? std::to_string(entry.second) : "noise") + "\n";
   }
 
-  std::cout << result;
+  std::cout << result << std::endl;
+
+  std::ofstream file;
+  file.open("../data/dbscan-result.csv");
+  file << result;
+  file.close();
 
   time_analyzer.printRaport();
 
