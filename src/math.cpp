@@ -45,3 +45,40 @@ std::vector<int> math::getRandNonRepeatingIntVec(int min, int max, int size) {
   }
   return rand_vec;
 }
+
+int math::factorial(int n) {
+  int factorial = 1;
+  for (int i = 1; i <= n; i++) {
+    factorial *= i;
+  }
+  return factorial;
+}
+
+int math::binomialCoefficient(int n, int k) {
+  if (n < k) throw std::runtime_error("binomial params not correct");
+  return factorial(n) / (factorial(k) * factorial(n - k));
+}
+
+double math::calculateRandIndex(const std::vector<int> &base_classes,
+                                const std::vector<int> &found_classes) {
+  int TP = 0;
+  int TN = 0;
+  int base_group = 0;
+  int found_group = 0;
+  for (int i = 0; i < base_classes.size(); ++i) {
+    base_group = base_classes.at(i);
+    found_group = found_classes.at(i);
+    for (int j = i + 1; j < found_classes.size(); ++j) {
+      if (base_group == base_classes.at(j) &&
+          found_group == found_classes.at(j)) {
+        TP++;
+      }
+      if (base_group != base_classes.at(j) &&
+          found_group != found_classes.at(j)) {
+        TN++;
+      }
+    }
+  }
+  double rand = (TP + TN) / (double)binomialCoefficient(base_classes.size(), 2);
+  return rand;
+}
