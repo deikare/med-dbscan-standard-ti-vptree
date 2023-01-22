@@ -8,6 +8,6 @@
 
 using DataPoint = std::vector<double>;
 
-std::map<DataPoint, long> dbscan(const std::vector<DataPoint>& points,const std::function<double(DataPoint, DataPoint)>& distanceHandler,double eps,unsigned minPts);
+std::map<DataPoint, long> dbscan(const std::vector<DataPoint>& points, const std::function<double(DataPoint, DataPoint)>& distanceHandler, double eps, unsigned minPts);
 
-std::set<DataPoint> neighbours(const DataPoint & point, const std::vector<DataPoint> & points, const std::function<double (const DataPoint&, const DataPoint&)>& distanceHandler, double eps);
+std::map<DataPoint, long> dbscanTI(const std::vector<DataPoint>& points, const std::function<double(DataPoint, DataPoint)>& distanceHandler, double eps, unsigned minPts, const DataPoint& refPoint);

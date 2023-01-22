@@ -50,8 +50,11 @@ int main(int argc, char* argv[]) {
   };
 
   double eps = 1;
-  unsigned int minPts = 5;
-  auto dbscanResult = dbscan(data, distanceHandler, eps, minPts);
+  unsigned int minPts = 3;
+//  auto dbscanResult = dbscan(data, distanceHandler, eps, minPts);
+  std::vector<double> refPoint = {0, 0};
+  auto dbscanResult = dbscanTI(data, distanceHandler, eps, minPts, refPoint);
+
   std::string result = std::to_string(eps) + "\n";
 
   for (const auto& entry : dbscanResult) {
