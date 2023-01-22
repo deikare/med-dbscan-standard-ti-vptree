@@ -49,13 +49,15 @@ int main(int argc, char* argv[]) {
       return math::minkowskiDist(point1, point2, 2);
   };
 
-  auto dbscanResult = dbscan(data, distanceHandler, 5, 6);
-  std::string result;
+  double eps = 1;
+  unsigned int minPts = 5;
+  auto dbscanResult = dbscan(data, distanceHandler, eps, minPts);
+  std::string result = std::to_string(eps) + "\n";
 
   for (const auto& entry : dbscanResult) {
       for (auto attribute : entry.first)
           result += std::to_string(attribute) + ",";
-      result += ((entry.second > 0)? std::to_string(entry.second) : "noise") + "\n";
+      result += std::to_string(entry.second) + "\n";
   }
 
   std::cout << result << std::endl;
