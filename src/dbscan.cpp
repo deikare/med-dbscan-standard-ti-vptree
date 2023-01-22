@@ -24,7 +24,7 @@ std::map<DataPoint, long> dbscanImplementation(const std::vector<DataPoint> & po
                 auto entry = result.find(seed);
                 if (entry == result.end()) { //seed is unclassified
                     result.emplace(seed, clusterIndex);
-                    auto seedNeighbours = neighboursHandler(point);
+                    auto seedNeighbours = neighboursHandler(seed);
                     if (seedNeighbours.size() >= minPts) //seed is core
                         seeds.merge(seedNeighbours);
                 }
