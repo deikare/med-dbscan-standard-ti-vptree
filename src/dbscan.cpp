@@ -3,11 +3,13 @@
 //
 #include "dbscan.hpp"
 
-std::map<DataPoint, long> dbscanImplementation(const std::vector<DataPoint> & points, const std::function<std::set<DataPoint>(DataPoint)> &neighboursHandler, const unsigned int minPts) {
+std::map<DataPoint, long> dbscanImplementation(const std::vector<DataPoint> &points,
+                                               const std::function<std::set<DataPoint>(DataPoint)> &neighboursHandler,
+                                               const unsigned int minPts) {
     std::map<DataPoint, long> result;
     long clusterIndex = NOISE;
 
-    for (const auto& point : points) {
+    for (const auto &point: points) {
         if (result.find(point) == result.end()) {
             auto seeds = neighboursHandler(point);
             if (seeds.size() < minPts) {
@@ -27,8 +29,7 @@ std::map<DataPoint, long> dbscanImplementation(const std::vector<DataPoint> & po
                     auto seedNeighbours = neighboursHandler(seed);
                     if (seedNeighbours.size() >= minPts) //seed is core
                         seeds.merge(seedNeighbours);
-                }
-                else if (entry->second == NOISE)
+                } else if (entry->second == NOISE)
                     entry->second = clusterIndex;
 
                 seeds.erase(seed);
@@ -38,23 +39,29 @@ std::map<DataPoint, long> dbscanImplementation(const std::vector<DataPoint> & po
 
     return result;
 }
-void addToResultIfNeighbour(const DataPoint& point, const DataPoint& potentialNeighbour, std::set<DataPoint>& result, const std::function<double(const DataPoint&, const DataPoint&)>& distanceHandler, double eps) {
+
+void addToResultIfNeighbour(const DataPoint &point, const DataPoint &potentialNeighbour, std::set<DataPoint> &result,
+                            const std::function<double(const DataPoint &, const DataPoint &)> &distanceHandler,
+                            double eps) {
     if (distanceHandler(point, potentialNeighbour) <= eps)
         result.emplace(potentialNeighbour);
 }
 
 
 std::set<DataPoint> neighbours(const DataPoint &point, const std::vector<DataPoint> &points,
-                               const std::function<double(const DataPoint&, const DataPoint&)>& distanceHandler, double eps) {
+                               const std::function<double(const DataPoint &, const DataPoint &)> &distanceHandler,
+                               double eps) {
     std::set<DataPoint> result;
-    for (const auto& potentialNeighbour : points) {
+    for (const auto &potentialNeighbour: points) {
         addToResultIfNeighbour(point, potentialNeighbour, result, distanceHandler, eps);
     }
     return result;
 }
 
-std::map<DataPoint, long> dbscan(const std::vector<DataPoint> & points, const std::function<double(DataPoint, DataPoint)>& distanceHandler, const double eps, const unsigned int minPts) {
-    auto neighboursHandler = [eps, distanceHandler, points](const DataPoint& point) {
+std::map<DataPoint, long>
+dbscan(const std::vector<DataPoint> &points, const std::function<double(DataPoint, DataPoint)> &distanceHandler,
+       const double eps, const unsigned int minPts) {
+    auto neighboursHandler = [eps, distanceHandler, points](const DataPoint &point) {
         return neighbours(point, points, distanceHandler, eps);
     };
     return dbscanImplementation(points, neighboursHandler, minPts);
@@ -62,12 +69,14 @@ std::map<DataPoint, long> dbscan(const std::vector<DataPoint> & points, const st
 
 
 struct dontCompare { //disable compare of keys in TI map
-    bool operator()(const DataPoint & a, const DataPoint & b) const {
-        return (a < b)? true : true; //dummy code so clang dont return errors
+    bool operator()(const DataPoint &a, const DataPoint &b) const {
+        return (a < b) ? true : true; //dummy code so clang dont return errors
     }
 };
 
-std::set<DataPoint> neighboursTI(const DataPoint &point, std::map<DataPoint, double, dontCompare> referenceTable, const std::function<double(const DataPoint&, const DataPoint&)>& distanceHandler, double eps) {
+std::set<DataPoint> neighboursTI(const DataPoint &point, std::map<DataPoint, double, dontCompare> referenceTable,
+                                 const std::function<double(const DataPoint &, const DataPoint &)> &distanceHandler,
+                                 double eps) {
     std::set<DataPoint> result = {point};
 
     auto iterator = referenceTable.find(point);
@@ -78,41 +87,44 @@ std::set<DataPoint> neighboursTI(const DataPoint &point, std::map<DataPoint, dou
     for (reverseIterator++; reverseIterator != rend; reverseIterator++) {
         if (referencedDistance - reverseIterator->second <= eps) {
             addToResultIfNeighbour(point, reverseIterator->first, result, distanceHandler, eps);
-        }
-        else break;
+        } else break;
     }
 
     auto end = referenceTable.end();
     for (iterator++; iterator != end; iterator++) {
         if (iterator->second - referencedDistance <= eps) {
             addToResultIfNeighbour(point, iterator->first, result, distanceHandler, eps);
-        }
-        else break;
+        } else break;
     }
 
     return result;
 }
 
 
-std::map<DataPoint, double, dontCompare> generateReferenceTable(const std::vector<DataPoint> &points, const DataPoint& refPoint, const std::function<double(DataPoint, DataPoint)> &distanceHandler) {
+std::map<DataPoint, double, dontCompare>
+generateReferenceTable(const std::vector<DataPoint> &points, const DataPoint &refPoint,
+                       const std::function<double(DataPoint, DataPoint)> &distanceHandler) {
     std::vector<std::pair<DataPoint, double>> resultAsVector;
-    for (const auto& point: points)
+    for (const auto &point: points)
         resultAsVector.emplace_back(point, distanceHandler(point, refPoint));
 
-    std::sort(resultAsVector.begin(), resultAsVector.end(), [](const std::pair<DataPoint, double>& a, const std::pair<DataPoint, double>& b) {
-        return a.second < b.second;
-    });
+    std::sort(resultAsVector.begin(), resultAsVector.end(),
+              [](const std::pair<DataPoint, double> &a, const std::pair<DataPoint, double> &b) {
+                  return a.second < b.second;
+              });
 
     std::map<DataPoint, double, dontCompare> result;
-    for (const auto& pair: resultAsVector)
+    for (const auto &pair: resultAsVector)
         result.emplace(pair.first, pair.second);
     return result;
 }
 
-std::map<DataPoint, long> dbscanTI(const std::vector<DataPoint> &points, const std::function<double(DataPoint, DataPoint)> &distanceHandler, double eps, unsigned int minPts, const DataPoint &refPoint) {
+std::map<DataPoint, long>
+dbscanTI(const std::vector<DataPoint> &points, const std::function<double(DataPoint, DataPoint)> &distanceHandler,
+         double eps, unsigned int minPts, const DataPoint &refPoint) {
     auto table = generateReferenceTable(points, refPoint, distanceHandler);
 
-    auto neighboursHandler = [eps, distanceHandler, table](const DataPoint& point) {
+    auto neighboursHandler = [eps, distanceHandler, table](const DataPoint &point) {
         return neighboursTI(point, table, distanceHandler, eps);
     };
 
