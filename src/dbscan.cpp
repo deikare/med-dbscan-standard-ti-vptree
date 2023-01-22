@@ -70,18 +70,20 @@ struct dontCompare { //disable compare of keys in TI map
 std::set<DataPoint> neighboursTI(const DataPoint &point, std::map<DataPoint, double, dontCompare> referenceTable, const std::function<double(const DataPoint&, const DataPoint&)>& distanceHandler, double eps) {
     std::set<DataPoint> result = {point};
 
+    auto iterator = referenceTable.find(point);
+    auto referencedDistance = iterator->second;
+
     auto rend = referenceTable.rend();
-    auto iteratorCopy = referenceTable.find(point);
-    auto referencedDistance = iteratorCopy->second;
-    for (std::map<DataPoint, double, dontCompare>::reverse_iterator iterator(iteratorCopy); iterator != rend; iterator++) {
-        if (referencedDistance - iterator->second <= eps) {
-            addToResultIfNeighbour(point, iterator->first, result, distanceHandler, eps);
+    std::map<DataPoint, double, dontCompare>::reverse_iterator reverseIterator(iterator);
+    for (reverseIterator++; reverseIterator != rend; reverseIterator++) {
+        if (referencedDistance - reverseIterator->second <= eps) {
+            addToResultIfNeighbour(point, reverseIterator->first, result, distanceHandler, eps);
         }
         else break;
     }
 
     auto end = referenceTable.end();
-    for (auto iterator = iteratorCopy; iterator != end; iterator++) {
+    for (iterator++; iterator != end; iterator++) {
         if (iterator->second - referencedDistance <= eps) {
             addToResultIfNeighbour(point, iterator->first, result, distanceHandler, eps);
         }
