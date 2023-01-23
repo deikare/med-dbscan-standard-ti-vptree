@@ -8,9 +8,9 @@ namespace VP_CONST {
  * dataset then no random subset is used but real variance of distances is
  * calculated */
 /** Cardinality of subset A in random distance variance calculation */
-const int A_SUBSET_CARDINALITY = 2;
+const int A_SUBSET_CARDINALITY = 50;
 /** Cardinality of subset B in random distance variance calculation */
-const int B_SUBSET_CARDINALITY = 2;
+const int B_SUBSET_CARDINALITY = 50;
 
 /** Parameter of Minkowski distance calculation */
 const int MINKOWSKI_PARAM = 2;
