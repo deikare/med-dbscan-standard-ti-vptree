@@ -110,7 +110,7 @@ generateReferenceTable(const std::vector<DataPoint> &points, const DataPoint &re
 
     std::sort(resultAsVector.begin(), resultAsVector.end(),
               [](const std::pair<DataPoint, double> &a, const std::pair<DataPoint, double> &b) {
-                  return a.second < b.second;
+                  return a.second > b.second;
               });
 
     std::map<DataPoint, double, dontCompare> result;
