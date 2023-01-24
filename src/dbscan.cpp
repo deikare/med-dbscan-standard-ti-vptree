@@ -20,9 +20,7 @@ std::map<DataPoint, long> dbscanImplementation(const std::vector<DataPoint> &poi
             clusterIndex++;
             result.emplace(point, clusterIndex);
             seeds.erase(point);
-            while (!seeds.empty()) {
-                auto seed = *(seeds.begin());
-
+            for (const auto& seed : seeds) {
                 auto entry = result.find(seed);
                 if (entry == result.end()) { //seed is unclassified
                     result.emplace(seed, clusterIndex);
@@ -31,8 +29,6 @@ std::map<DataPoint, long> dbscanImplementation(const std::vector<DataPoint> &poi
                         seeds.merge(seedNeighbours);
                 } else if (entry->second == NOISE)
                     entry->second = clusterIndex;
-
-                seeds.erase(seed);
             }
         }
     }
