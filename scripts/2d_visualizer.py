@@ -26,6 +26,9 @@ def read_data(filename: str, ignore_lines: int, epsilon_defined: bool) -> Tuple[
         eps_value = float(file.readline())
     else:
         eps_value = None
+    file.close()
+
+    file = open(filename)
     data = pd.read_csv(file, skiprows=ignore_lines, header=None)
     classes_num = data.nunique()[len(data.columns)-1]
     print(type(data))
