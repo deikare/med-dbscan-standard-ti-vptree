@@ -1,29 +1,30 @@
 //
 // Created by deikare on 05.01.23.
 //
+#include <fstream>
+#include <utility>
 #include "dbscan.hpp"
 
-std::map<DataPoint, long> dbscanImplementation(const std::vector<DataPoint> &points,
-                                               const std::function<std::set<DataPoint>(DataPoint)> &neighboursHandler,
-                                               const unsigned int minPts) {
-    std::map<DataPoint, long> result;
+void DBScan::performClustering(const std::vector<DataPoint> &points,
+                               const std::function<std::set<DataPoint>(DataPoint)> &neighboursHandler) {
     long clusterIndex = NOISE;
 
     for (const auto &point: points) {
-        if (result.find(point) == result.end()) {
+        if (clusterizeResult.find(point) == clusterizeResult.end()) {
             auto seeds = neighboursHandler(point);
             if (seeds.size() < minPts) {
-                result.emplace(point, NOISE);
+                clusterizeResult.emplace(point, NOISE);
                 continue;
             }
 
             clusterIndex++;
-            result.emplace(point, clusterIndex);
+            clusterizeResult.emplace(point, clusterIndex);
             seeds.erase(point);
-            for (const auto& seed : seeds) {
-                auto entry = result.find(seed);
-                if (entry == result.end()) { //seed is unclassified
-                    result.emplace(seed, clusterIndex);
+
+            for (const auto &seed: seeds) {
+                auto entry = clusterizeResult.find(seed);
+                if (entry == clusterizeResult.end()) { //seed is unclassified
+                    clusterizeResult.emplace(seed, clusterIndex);
                     auto seedNeighbours = neighboursHandler(seed);
                     if (seedNeighbours.size() >= minPts) //seed is core
                         seeds.merge(seedNeighbours);
@@ -32,74 +33,69 @@ std::map<DataPoint, long> dbscanImplementation(const std::vector<DataPoint> &poi
             }
         }
     }
+}
 
+DBScan::DBScan(const std::vector<DataPoint> &points, const std::function<double(DataPoint, DataPoint)> &distanceHandler,
+               unsigned int minPts, double eps) : minPts(minPts), eps(eps) {
+    auto neighboursHandler = [this, distanceHandler, points](const DataPoint &point) {
+        return this->neighbours(point, points, distanceHandler);
+    };
+
+    performClustering(points, neighboursHandler);
+}
+
+std::set<DataPoint> DBScan::neighbours(const DataPoint &point, const std::vector<DataPoint> &points,
+                                       const std::function<double(DataPoint, DataPoint)> &distanceHandler) {
+    std::set<DataPoint> result;
+    for (const auto &potentialNeighbour: points) {
+        addToResultIfNeighbour(point, potentialNeighbour, result, distanceHandler);
+    }
     return result;
 }
 
-void addToResultIfNeighbour(const DataPoint &point, const DataPoint &potentialNeighbour, std::set<DataPoint> &result,
-                            const std::function<double(const DataPoint &, const DataPoint &)> &distanceHandler,
-                            double eps) {
+void
+DBScan::addToResultIfNeighbour(const DataPoint &point, const DataPoint &potentialNeighbour, std::set<DataPoint> &result,
+                               const std::function<double(DataPoint, DataPoint)> &distanceHandler) const {
     if (distanceHandler(point, potentialNeighbour) <= eps)
         result.emplace(potentialNeighbour);
 }
 
+void DBScan::printResultToFile(const std::string &filename) {
+    std::string result = std::to_string(eps) + "\n";
 
-std::set<DataPoint> neighbours(const DataPoint &point, const std::vector<DataPoint> &points,
-                               const std::function<double(const DataPoint &, const DataPoint &)> &distanceHandler,
-                               double eps) {
-    std::set<DataPoint> result;
-    for (const auto &potentialNeighbour: points) {
-        addToResultIfNeighbour(point, potentialNeighbour, result, distanceHandler, eps);
+    for (const auto &entry: clusterizeResult) {
+        for (auto attribute: entry.first)
+            result += std::to_string(attribute) + ",";
+        result += std::to_string(entry.second) + "\n";
     }
-    return result;
+
+    std::ofstream file;
+    file.open(filename);
+    file << result;
+    file.close();
 }
 
-std::map<DataPoint, long>
-dbscan(const std::vector<DataPoint> &points, const std::function<double(DataPoint, DataPoint)> &distanceHandler,
-       const double eps, const unsigned int minPts) {
-    auto neighboursHandler = [eps, distanceHandler, points](const DataPoint &point) {
-        return neighbours(point, points, distanceHandler, eps);
+DBScan::DBScan(const unsigned long minPts, const double eps) : minPts(minPts), eps(eps) {}
+
+
+DBScanTi::DBScanTi(const std::vector<DataPoint> &points,
+                   const std::function<double(DataPoint, DataPoint)> &distanceHandler,
+                   double eps, unsigned int minPts, DataPoint refPoint)
+        : DBScan(minPts, eps), refPoint(std::move(refPoint)) {
+
+    auto table = generateReferenceTable(points, distanceHandler);
+
+    auto neighboursHandler = [this, distanceHandler, table](const DataPoint &point) {
+        return this->neighboursTI(point, table, distanceHandler);
     };
-    return dbscanImplementation(points, neighboursHandler, minPts);
+
+    performClustering(points, neighboursHandler);
 }
 
-
-struct dontCompare { //disable compare of keys in TI map
-    bool operator()(const DataPoint &a, const DataPoint &b) const {
-        return (a < b) ? true : true; //dummy code so clang dont return errors
-    }
-};
-
-std::set<DataPoint> neighboursTI(const DataPoint &point, std::map<DataPoint, double, dontCompare> referenceTable,
-                                 const std::function<double(const DataPoint &, const DataPoint &)> &distanceHandler,
-                                 double eps) {
-    std::set<DataPoint> result = {point};
-
-    auto iterator = referenceTable.find(point);
-    auto referencedDistance = iterator->second;
-
-    auto rend = referenceTable.rend();
-    std::map<DataPoint, double, dontCompare>::reverse_iterator reverseIterator(iterator);
-    for (reverseIterator++; reverseIterator != rend; reverseIterator++) {
-        if (referencedDistance - reverseIterator->second <= eps) {
-            addToResultIfNeighbour(point, reverseIterator->first, result, distanceHandler, eps);
-        } else break;
-    }
-
-    auto end = referenceTable.end();
-    for (iterator++; iterator != end; iterator++) {
-        if (iterator->second - referencedDistance <= eps) {
-            addToResultIfNeighbour(point, iterator->first, result, distanceHandler, eps);
-        } else break;
-    }
-
-    return result;
-}
-
-
-std::map<DataPoint, double, dontCompare>
-generateReferenceTable(const std::vector<DataPoint> &points, const DataPoint &refPoint,
-                       const std::function<double(DataPoint, DataPoint)> &distanceHandler) {
+std::map<DataPoint, double, DBScanTi::dontCompare>
+DBScanTi::generateReferenceTable(const std::vector<DataPoint> &points,
+                                 const std::function<double(DataPoint,
+                                                            DataPoint)> &distanceHandler) {
     std::vector<std::pair<DataPoint, double>> resultAsVector;
     for (const auto &point: points)
         resultAsVector.emplace_back(point, distanceHandler(point, refPoint));
@@ -115,17 +111,28 @@ generateReferenceTable(const std::vector<DataPoint> &points, const DataPoint &re
     return result;
 }
 
-std::map<DataPoint, long>
-dbscanTI(const std::vector<DataPoint> &points, const std::function<double(DataPoint, DataPoint)> &distanceHandler,
-         double eps, unsigned int minPts, const DataPoint &refPoint) {
-    auto table = generateReferenceTable(points, refPoint, distanceHandler);
+std::set<DataPoint>
+DBScanTi::neighboursTI(const DataPoint &point, std::map<DataPoint, double, DBScanTi::dontCompare> referenceTable,
+                       const std::function<double(const DataPoint &, const DataPoint &)> &distanceHandler) {
+    std::set<DataPoint> result = {point};
 
-    auto neighboursHandler = [eps, distanceHandler, table](const DataPoint &point) {
-        return neighboursTI(point, table, distanceHandler, eps);
-    };
+    auto iterator = referenceTable.find(point);
+    auto referencedDistance = iterator->second;
 
-    return dbscanImplementation(points, neighboursHandler, minPts);
+    auto rend = referenceTable.rend();
+    std::map<DataPoint, double, DBScanTi::dontCompare>::reverse_iterator reverseIterator(iterator);
+    for (reverseIterator++; reverseIterator != rend; reverseIterator++) {
+        if (referencedDistance - reverseIterator->second <= eps) {
+            addToResultIfNeighbour(point, reverseIterator->first, result, distanceHandler);
+        } else break;
+    }
+
+    auto end = referenceTable.end();
+    for (iterator++; iterator != end; iterator++) {
+        if (iterator->second - referencedDistance <= eps) {
+            addToResultIfNeighbour(point, iterator->first, result, distanceHandler);
+        } else break;
+    }
+
+    return result;
 }
-
-//implementacja otoczenia TI - przed początkiem dbscana policzyć posortowaną tabelę po odległościach od punktu referencyjnego, i potem stosować nierówność trójkąta
-// todo zrobić klasy z mapą idków bindującą do współrzędnych - wtedy będziemy zwracać mapę idków

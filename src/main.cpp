@@ -49,26 +49,13 @@ int main(int argc, char* argv[]) {
       return math::minkowskiDist(point1, point2, 2);
   };
 
-  double eps = 1;
-  unsigned int minPts = 3;
-//  auto dbscanResult = dbscan(data, distanceHandler, eps, minPts);
+  double eps = 1; //try 1, 3
+  unsigned int minPts = 5;
   std::vector<double> refPoint = {0, 0};
-  auto dbscanResult = dbscanTI(data, distanceHandler, eps, minPts, refPoint);
 
-  std::string result = std::to_string(eps) + "\n";
-
-  for (const auto& entry : dbscanResult) {
-      for (auto attribute : entry.first)
-          result += std::to_string(attribute) + ",";
-      result += std::to_string(entry.second) + "\n";
-  }
-
-  std::cout << result << std::endl;
-
-  std::ofstream file;
-  file.open("../data/dbscan-result.csv");
-  file << result;
-  file.close();
+  DBScan result = DBScan(data, distanceHandler, minPts, eps);
+//  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, refPoint);
+  result.printResultToFile("../data/dbscan-result-new.csv");
 
   time_analyzer.printRaport();
 
