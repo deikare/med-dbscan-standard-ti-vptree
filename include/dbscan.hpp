@@ -69,7 +69,7 @@ public:
 class DBScanTi : public DBScan {
 public:
     DBScanTi(const std::vector<DataPoint> &points, const std::function<double(DataPoint, DataPoint)> &distanceHandler,
-             double eps, unsigned int minPts, DataPoint refPoint);
+             double eps, unsigned int minPts, const DataPoint& refPoint);
 
     void generateOutFile(const std::string &prefix, const std::string &datafileName) override;
 
@@ -82,11 +82,23 @@ private:
         }
     };
 
-    std::map<DataPoint, double, dontCompare> generateReferenceTable(const std::vector<DataPoint> &points,
-                                                                    const std::function<double(DataPoint,
-                                                                                               DataPoint)> &distanceHandler);
+    class ReferenceTable {
+    private:
+        std::map<DataPoint, long> indexMap;
+        std::vector<std::pair<DataPoint, double>> distancesToReference;
+    public:
+        ReferenceTable(const std::vector<DataPoint> &points,
+                       const std::function<double(DataPoint,
+                                                  DataPoint)> &distanceHandler, const DataPoint& refPoint);
 
-    std::set<DataPoint> neighboursTI(const DataPoint &point, std::map<DataPoint, double, dontCompare> referenceTable,
+        [[nodiscard]] std::vector<std::pair<DataPoint, double>>::const_iterator iterator(const DataPoint& point) const;
+        [[nodiscard]] std::vector<std::pair<DataPoint, double>>::const_reverse_iterator reverseIterator(const DataPoint& point) const;
+        [[nodiscard]] std::vector<std::pair<DataPoint, double>>::const_iterator end() const;
+        [[nodiscard]] std::vector<std::pair<DataPoint, double>>::const_reverse_iterator rend() const;
+
+    };
+
+    std::set<DataPoint> neighboursTI(const DataPoint &point,
                                      const std::function<double(const DataPoint &,
-                                                                const DataPoint &)> &distanceHandler);
+                                                                const DataPoint &)> &distanceHandler, const ReferenceTable& referenceTable);
 };
