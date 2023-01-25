@@ -47,6 +47,8 @@ protected:
                            const std::function<double(DataPoint, DataPoint)> &distanceHandler) const;
     void addToDistanceCalculationCount(const DataPoint& point, unsigned long increment);
 
+    std::string generateFilename(const std::string& prefix, const std::string& type, const std::string& datafileName, const std::string& algorithmVersion);
+
 
     const double eps;
 
