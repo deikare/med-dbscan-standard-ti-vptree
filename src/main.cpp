@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
   DBScan result = DBScan(data, distanceHandler, minPts, eps);
 //  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, refPoint);
   result.printResultToFile("../data/dbscan-result-new.csv");
-  result.generateOutFile("Dane");
+  result.generateOutFile("../data", "Dane");
 
   time_analyzer.printRaport();
 

@@ -113,32 +113,38 @@ void DBScan::setPointType(const DataPoint &point, int8_t type) {
     entry->second.pointType = type;
 }
 
-void DBScan::generateOutFile(const std::string& datafileName, const std::string &algorithmVersion) {
-    std::string result;
+void DBScan::generateOutFile(const std::string &prefix, const std::string &datafileName) {
+    generateOutFile(prefix, datafileName, "DBSCAN");
 
-    for (auto & iterator : clusterizeResult) {
-        DataPoint point = iterator.first;
-        long clusterIndex = iterator.second;
-
-        result += pointStatistics.find(point)->second.produceOutLine(point, clusterIndex) + "\n";
-    }
-
-    std::string outFileName = "../data/out_" + algorithmVersion + "_" + datafileName + "_D" + std::to_string(clusterizeResult.begin()->first.size()) + "_R" + std::to_string(clusterizeResult.size()) + "_E" + std::to_string(eps) + ".txt";
-
-    writeToFile(result, outFileName);
 }
 
-void DBScan::writeToFile(const std::string& string, const std::string &filename) {
+void DBScan::writeToFile(const std::string &string, const std::string &filename) {
     std::ofstream file;
     file.open(filename);
     file << string;
     file.close();
 }
 
-void DBScan::generateOutFile(const std::string &datafileName) {
-    generateOutFile(datafileName, "DBSCAN");
-}
+void DBScan::generateOutFile(const std::string &prefix, const std::string &datafileName,
+                             const std::string &algorithmVersion) {
+    std::string result;
 
+    for (auto &iterator: clusterizeResult) {
+        DataPoint point = iterator.first;
+        long clusterIndex = iterator.second;
+
+        result += pointStatistics.find(point)->second.produceOutLine(point, clusterIndex) + "\n";
+    }
+
+    //TODO add prefix as variable
+    std::string outFileName = (prefix.empty() ? "" : (prefix + "/"));
+    outFileName += "out_" + algorithmVersion + "_" + datafileName + "_D" +
+                   std::to_string(clusterizeResult.begin()->first.size()) + "_R" +
+                   std::to_string(clusterizeResult.size()) + "_mP" + std::to_string(minPts) + "_E" +
+                   std::to_string(eps) + ".txt";
+
+    writeToFile(result, outFileName);
+}
 
 DBScanTi::DBScanTi(const std::vector<DataPoint> &points,
                    const std::function<double(DataPoint, DataPoint)> &distanceHandler,
@@ -218,7 +224,8 @@ std::string DBScan::PointStatistics::produceOutLine(const DataPoint &point, long
 
     result += std::to_string(neighbourhood.size());
 
-    return result;}
+    return result;
+}
 
 
 

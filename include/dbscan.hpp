@@ -53,7 +53,7 @@ protected:
 
     void performClustering(const std::vector<DataPoint> &points,
                            const std::function<std::set<DataPoint>(DataPoint)> &neighboursHandler);
-    void generateOutFile(const std::string& datafileName, const std::string& algorithmVersion);
+    void generateOutFile(const std::string& prefix, const std::string& datafileName, const std::string& algorithmVersion);
 
 public:
     DBScan(const std::vector<DataPoint> &points, const std::function<double(DataPoint, DataPoint)> &distanceHandler,
@@ -61,7 +61,7 @@ public:
 
     void printResultToFile(const std::string &filename);
 
-    void generateOutFile(const std::string& datafileName);
+    void generateOutFile(const std::string& prefix, const std::string& datafileName);
 };
 
 class DBScanTi : public DBScan {
