@@ -66,21 +66,18 @@ protected:
     void
     generateStatFile(const std::string &prefix, const std::string &datafileName, const std::string &algorithmVersion);
 
-    std::string produceStatFileContents(const std::string &datafileName);
+    virtual std::string produceStatFileContents(const std::string &datafileName);
 
     std::map<DataPoint, PointStatistics> pointStatistics;
 
     std::chrono::high_resolution_clock::time_point totalStart = std::chrono::high_resolution_clock::now();
-    std::chrono::high_resolution_clock::duration totalDuration = std::chrono::high_resolution_clock::now() - std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::duration totalDuration = {};
 
-    std::chrono::high_resolution_clock::time_point clusteringStart;
-    std::chrono::high_resolution_clock::duration clusteringDuration = std::chrono::high_resolution_clock::now() - std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::duration clusteringDuration = {};
 
-    std::chrono::high_resolution_clock::time_point neighbourhoodStart;
-    std::chrono::high_resolution_clock::duration neighbourhoodDuration = std::chrono::high_resolution_clock::now() - std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::duration neighbourhoodDuration = {};
 
-    std::chrono::high_resolution_clock::time_point outfileStart;
-    std::chrono::high_resolution_clock::duration outfileDuration = std::chrono::high_resolution_clock::now() - std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::duration outfileDuration = {};
 
 
     std::string suffix;
@@ -103,10 +100,12 @@ class DBScanTi : public DBScan {
 public:
     DBScanTi(const std::vector<DataPoint> &points, const std::function<double(DataPoint, DataPoint)> &distanceHandler,
              double eps, unsigned int minPts, enum ReferencePointType referencePointType);
+
     DBScanTi(const std::vector<DataPoint> &points, const std::function<double(DataPoint, DataPoint)> &distanceHandler,
-             double eps, unsigned int minPts, const std::vector<ReferencePointType>& referencePointType);
+             double eps, unsigned int minPts, const std::vector<ReferencePointType> &referencePointType);
+
     DBScanTi(const std::vector<DataPoint> &points, const std::function<double(DataPoint, DataPoint)> &distanceHandler,
-             double eps, unsigned int minPts, const DataPoint& refPoint);
+             double eps, unsigned int minPts, const DataPoint &refPoint);
 
     void generateOutFile(const std::string &prefix, const std::string &datafileName) override;
 
@@ -117,18 +116,30 @@ private:
 
     void calculateRefPoint(const std::vector<DataPoint> &points, enum ReferencePointType referencePointType);
 
-    void calculateRefPoint(const std::vector<DataPoint> &points, const std::vector<ReferencePointType>& attributeRefs);
+    void calculateRefPoint(const std::vector<DataPoint> &points, const std::vector<ReferencePointType> &attributeRefs);
 
-    void calculateRefPointAttribute(const std::vector<DataPoint> &points, enum ReferencePointType referencePointType, unsigned long attribute);
+    void calculateRefPointAttribute(const std::vector<DataPoint> &points, enum ReferencePointType referencePointType,
+                                    unsigned long attribute);
+
+    std::chrono::high_resolution_clock::duration resPointTableDuration = {};
+    std::chrono::high_resolution_clock::duration sortResPointTableDuration = {};
+
+protected:
+    std::string produceStatFileContents(const std::string &datafileName) override;
+
+private:
 
     class ReferenceTable {
     private:
         std::map<DataPoint, long> indexMap;
         std::vector<std::pair<DataPoint, double>> distancesToReference;
+
     public:
         ReferenceTable(const std::vector<DataPoint> &points,
                        const std::function<double(DataPoint,
-                                                  DataPoint)> &distanceHandler, const DataPoint &refPoint);
+                                                  DataPoint)> &distanceHandler, const DataPoint &refPoint,
+                       std::chrono::high_resolution_clock::duration &resPointTableDuration,
+                       std::chrono::high_resolution_clock::duration &sortResPointTableDuration);
 
         [[nodiscard]] std::vector<std::pair<DataPoint, double>>::const_iterator iterator(const DataPoint &point) const;
 
