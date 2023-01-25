@@ -23,7 +23,7 @@ private:
 
     class PointStatistics {
     public:
-        static unsigned long NEXT_POINT_ID;
+        inline static unsigned long NEXT_POINT_ID = 0;
         const unsigned long id;
         unsigned long distanceCalculationCount = 0;
         int8_t pointType = NOISE; //default

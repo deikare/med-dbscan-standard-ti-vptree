@@ -79,7 +79,6 @@ void DBScan::printResultToFile(const std::string &filename) {
 }
 
 void DBScan::initializePointStatistics(const std::vector<DataPoint> &points) {
-    PointStatistics::NEXT_POINT_ID = 0;
     for (const auto &point: points)
         pointStatistics.emplace(point, PointStatistics());
 }
