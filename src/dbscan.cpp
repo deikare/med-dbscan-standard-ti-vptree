@@ -5,12 +5,12 @@
 #include <utility>
 #include "dbscan.hpp"
 
-void DBScan::performClustering(const std::vector<DataPoint> &points,
+void DBScan::performClustering(const std::vector<DataPoint> &datapoints,
                                const std::function<std::set<DataPoint>(DataPoint)> &neighboursHandler) {
     auto clusteringStart = std::chrono::high_resolution_clock::now();
     long clusterIndex = NOISE;
 
-    for (const auto &point: points) {
+    for (const auto &point: datapoints) {
         if (clusterizeResult.find(point) == clusterizeResult.end()) {
             auto seeds = neighboursHandler(point);
             setNeighbourhood(point, seeds);
@@ -49,7 +49,7 @@ void DBScan::performClustering(const std::vector<DataPoint> &points,
 }
 
 DBScan::DBScan(const std::vector<DataPoint> &points, const std::function<double(DataPoint, DataPoint)> &distanceHandler,
-               unsigned int minPts, double eps) : minPts(minPts), eps(eps) {
+               unsigned int minPts, double eps) : minPts(minPts), points(points), eps(eps) {
     initializePointStatistics(points);
 
     auto neighboursHandler = [this, distanceHandler, points](const DataPoint &point) {
@@ -60,14 +60,14 @@ DBScan::DBScan(const std::vector<DataPoint> &points, const std::function<double(
     performClustering(points, neighboursHandler);
 }
 
-std::set<DataPoint> DBScan::neighbours(const DataPoint &point, const std::vector<DataPoint> &points,
+std::set<DataPoint> DBScan::neighbours(const DataPoint &point, const std::vector<DataPoint> &datapoints,
                                        const std::function<double(DataPoint, DataPoint)> &distanceHandler) {
     auto neighbourhoodStart = std::chrono::high_resolution_clock::now();
     std::set<DataPoint> result;
-    for (const auto &potentialNeighbour: points) {
+    for (const auto &potentialNeighbour: datapoints) {
         addToResultIfNeighbour(point, potentialNeighbour, result, distanceHandler);
     }
-    addToDistanceCalculationCount(point, points.size());
+    addToDistanceCalculationCount(point, datapoints.size());
     neighbourhoodDuration += std::chrono::high_resolution_clock::now() - neighbourhoodStart;
     return result;
 }
@@ -91,12 +91,12 @@ void DBScan::printResultToFile(const std::string &filename) {
     writeToFile(result, filename);
 }
 
-void DBScan::initializePointStatistics(const std::vector<DataPoint> &points) {
-    for (const auto &point: points)
+void DBScan::initializePointStatistics(const std::vector<DataPoint> &datapoints) {
+    for (const auto &point: datapoints)
         pointStatistics.emplace(point, PointStatistics());
 }
 
-DBScan::DBScan(const std::vector<DataPoint> &points, unsigned long minPts, double eps) : minPts(minPts), eps(eps) {
+DBScan::DBScan(const std::vector<DataPoint> &points, unsigned long minPts, double eps) : minPts(minPts), points(points), eps(eps) {
     initializePointStatistics(points);
 }
 
@@ -163,22 +163,23 @@ DBScan::generateFilename(const std::string &prefix, const std::string &type, con
     return result;
 }
 
-void DBScan::generateStatFile(const std::string &prefix, const std::string &datafileName) {
-    generateStatFile(prefix, datafileName, "DBSCAN");
+void DBScan::generateStatFile(const std::string &prefix, const std::string &datafileName, const std::vector<long>& classes) {
+    generateStatFile(prefix, datafileName, "DBSCAN", classes);
 }
 
 void DBScan::generateStatFile(const std::string &prefix, const std::string &datafileName,
-                              const std::string &algorithmVersion) {
+                              const std::string &algorithmVersion, const std::vector<long>& classes) {
     std::string filename = generateFilename(prefix, "stat", datafileName, algorithmVersion);
 
-    std::string content = produceStatFileContents(datafileName);
+    std::string content = produceStatFileContents(datafileName, classes);
     writeToFile(content, filename);
 }
 
-std::string DBScan::produceStatFileContents(const std::string &datafileName) {
-    std::string result = datafileName + "," + std::to_string(clusterizeResult.begin()->first.size()) + "," +
-                         std::to_string(clusterizeResult.size()) + "\n";
-    result += std::to_string(minPts) + "," + std::to_string(eps) + "\n";
+std::string DBScan::produceStatFileContents(const std::string &datafileName, const std::vector<long>& classes) {
+    std::string result;
+    result += "Datafile: " + datafileName + ", attributes: " + std::to_string(clusterizeResult.begin()->first.size()) + ", samples: " + std::to_string(clusterizeResult.size()) + "\n";
+
+    result += "minPts: " + std::to_string(minPts) + ", eps: " + std::to_string(eps) + "\n";
     unsigned long noiseCount = 0;
     unsigned long borderCount = 0;
     unsigned long coreCount = 0;
@@ -192,7 +193,7 @@ std::string DBScan::produceStatFileContents(const std::string &datafileName) {
         else coreCount++;
     }
 
-    result += std::to_string(clusterCount) + "," + std::to_string(noiseCount) + "," + std::to_string(coreCount) + "," +
+    result += "clusters: " + std::to_string(clusterCount) + ", noisePts: " + std::to_string(noiseCount) + ", corePts: " + std::to_string(coreCount) + ", borderPts: " +
               std::to_string(borderCount) + "\n";
 
     unsigned long sum = 0;
@@ -200,9 +201,20 @@ std::string DBScan::produceStatFileContents(const std::string &datafileName) {
         sum += entry.second.distanceCalculationCount;
     double mean = double(sum / pointStatistics.size());
 
-    result += std::to_string(mean) + "\n";
-    result += std::to_string(totalDuration.count()) + "," + std::to_string(clusteringDuration.count()) + "," +
-              std::to_string(outfileDuration.count()) + "," + std::to_string(neighbourhoodDuration.count());
+    result += "Mean distance count: " + std::to_string(mean) + "\n";
+    result += "Total duration: " + std::to_string(totalDuration.count()) + ", clustering: " + std::to_string(clusteringDuration.count()) + ", outfileCreation: " +
+              std::to_string(outfileDuration.count()) + ",neighbourhoodCalculation: " + std::to_string(neighbourhoodDuration.count()) + "\n";
+
+    std::vector<long> calculatedClasses;
+    for (const auto& point : points) {
+        auto classValue = clusterizeResult.find(point)->second;
+        calculatedClasses.emplace_back(classValue);
+    }
+
+    auto randMeasurements = math::calculateRandIndex(classes, calculatedClasses);
+
+    result += "TP: " + std::to_string(std::get<0>(randMeasurements)) + ", TN: " + std::to_string(std::get<1>(randMeasurements)) + ", rand: " + std::to_string(std::get<2>(randMeasurements));
+
     return result;
 }
 
@@ -266,8 +278,8 @@ void DBScanTi::generateOutFile(const std::string &prefix, const std::string &dat
     DBScan::generateOutFile(prefix, datafileName, "TI-DBSCAN");
 }
 
-void DBScanTi::generateStatFile(const std::string &prefix, const std::string &datafileName) {
-    DBScan::generateStatFile(prefix, datafileName, "TI-DBSCAN");
+void DBScanTi::generateStatFile(const std::string &prefix, const std::string &datafileName, const std::vector<long> & classes) {
+    DBScan::generateStatFile(prefix, datafileName, "TI-DBSCAN", classes);
 }
 
 void DBScanTi::calculateRefPoint(const std::vector<DataPoint> &points, enum ReferencePointType referencePointType) {
@@ -341,10 +353,15 @@ DBScanTi::DBScanTi(const std::vector<DataPoint> &points,
 
 }
 
-std::string DBScanTi::produceStatFileContents(const std::string &datafileName) {
-    auto result = DBScan::produceStatFileContents(datafileName);
-    result += +"\n" + std::to_string(refPoint.size()) + "\n";
-    result += std::to_string(resPointTableDuration.count()) + "," + std::to_string(sortResPointTableDuration.count()) +
+std::string DBScanTi::produceStatFileContents(const std::string &datafileName, const std::vector<long> & classes) {
+    auto result = DBScan::produceStatFileContents(datafileName, classes);
+    result += "\nrefPoint: [";
+    for (auto entry: refPoint)
+        result += std::to_string(entry) + ",";
+    result.pop_back();
+    result += "]\n";
+    result += std::to_string(refPoint.size()) + "\n"; //TODO
+    result += "refPointTableCreationTime: " + std::to_string(resPointTableDuration.count()) + ", sortTime: " + std::to_string(sortResPointTableDuration.count()) +
               "\n";
     return result;
 }

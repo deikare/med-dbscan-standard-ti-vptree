@@ -26,7 +26,9 @@ struct SplitVector {
  * neighbours, the class doesn't store data vector itself but just operates on
  * indices of data entries */
 class VPTree {
-  std::shared_ptr<Node> root_;
+    unsigned long & distanceCalculationCount;
+
+    std::shared_ptr<Node> root_;
   /** @brief Method returns local vantage point index */
   int getVantagePointIndex_(const std::vector<DataPoint> &points);
 
@@ -54,7 +56,7 @@ class VPTree {
 
  public:
   /** @brief Constructor that creates VP tree for given points */
-  VPTree(const std::vector<DataPoint> &points);
+  VPTree(const std::vector<DataPoint> &points, unsigned long & distanceCalculationCount);
 
   /** @brief Method allows for recreation of VP tree for another set of data
    * @param points is dataset that will be used for creation of VP tree

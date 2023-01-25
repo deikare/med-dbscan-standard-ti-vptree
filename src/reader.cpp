@@ -15,7 +15,7 @@ auto CSVReader::stripLine_(std::string line) -> std::vector<double> {
 
 auto CSVReader::getData(std::string filename, bool has_class_column,
                         int skip_lines)
-    -> std::pair<std::vector<std::vector<double>>, std::vector<double>> {
+    -> std::pair<std::vector<std::vector<double>>, std::vector<long>> {
   std::ifstream csv_file(filename);
   std::string processed_line;
   std::vector<double> processed_row;
@@ -27,7 +27,7 @@ auto CSVReader::getData(std::string filename, bool has_class_column,
 
   // data structures for saving data values and classes (if needed)
   std::vector<std::vector<double>> data;
-  std::vector<double> classes;
+  std::vector<long> classes;
 
   // reading reamaining points
   while (getline(csv_file, processed_line)) {
@@ -39,6 +39,6 @@ auto CSVReader::getData(std::string filename, bool has_class_column,
     }
     data.push_back(processed_row);
   }
-  return std::make_pair<std::vector<std::vector<double>>, std::vector<double>>(
+  return std::make_pair<std::vector<std::vector<double>>, std::vector<long>>(
       std::move(data), std::move(classes));
 }

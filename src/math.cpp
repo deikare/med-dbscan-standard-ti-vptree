@@ -46,25 +46,25 @@ std::vector<int> math::getRandNonRepeatingIntVec(int min, int max, int size) {
   return rand_vec;
 }
 
-int math::factorial(int n) {
-  int factorial = 1;
-  for (int i = 1; i <= n; i++) {
+unsigned long math::factorial(unsigned long n) {
+  unsigned long factorial = 1;
+  for (unsigned long i = 1; i <= n; i++) {
     factorial *= i;
   }
   return factorial;
 }
 
-int math::binomialCoefficient(int n, int k) {
+unsigned long math::binomialCoefficient(unsigned long n, unsigned long k) {
   if (n < k) throw std::runtime_error("binomial params not correct");
   return factorial(n) / (factorial(k) * factorial(n - k));
 }
 
-double math::calculateRandIndex(const std::vector<int> &base_classes,
-                                const std::vector<int> &found_classes) {
-  int TP = 0;
-  int TN = 0;
-  int base_group = 0;
-  int found_group = 0;
+std::tuple<unsigned long, unsigned long, double> math::calculateRandIndex(const std::vector<long> &base_classes,
+                                                                    const std::vector<long> &found_classes) {
+  unsigned long TP = 0;
+  unsigned long TN = 0;
+  long base_group = 0;
+  long found_group = 0;
   for (size_t i = 0; i < base_classes.size(); ++i) {
     base_group = base_classes.at(i);
     found_group = found_classes.at(i);
@@ -80,5 +80,5 @@ double math::calculateRandIndex(const std::vector<int> &base_classes,
     }
   }
   double rand = (TP + TN) / (double)binomialCoefficient(base_classes.size(), 2);
-  return rand;
+  return {TP, TN, rand};
 }

@@ -7,6 +7,7 @@
 #include <functional>
 #include <string>
 #include "analyzer.hpp"
+#include "math.hpp"
 
 #define NOISE (-1)
 #define BORDER 0
@@ -21,11 +22,13 @@ private:
     const unsigned long minPts;
     unsigned long clusterCount;
 
+    std::vector<DataPoint> points;
 
-    std::set<DataPoint> neighbours(const DataPoint &point, const std::vector<DataPoint> &points,
+
+    std::set<DataPoint> neighbours(const DataPoint &point, const std::vector<DataPoint> &datapoints,
                                    const std::function<double(DataPoint, DataPoint)> &distanceHandler);
 
-    void initializePointStatistics(const std::vector<DataPoint> &points);
+    void initializePointStatistics(const std::vector<DataPoint> &datapoints);
 
     class PointStatistics {
     public:
@@ -60,16 +63,16 @@ protected:
 
     const double eps;
 
-    void performClustering(const std::vector<DataPoint> &points,
+    void performClustering(const std::vector<DataPoint> &datapoints,
                            const std::function<std::set<DataPoint>(DataPoint)> &neighboursHandler);
 
-    void
+    virtual void
     generateOutFile(const std::string &prefix, const std::string &datafileName, const std::string &algorithmVersion);
 
-    void
-    generateStatFile(const std::string &prefix, const std::string &datafileName, const std::string &algorithmVersion);
+    virtual void
+    generateStatFile(const std::string &prefix, const std::string &datafileName, const std::string &algorithmVersion, const std::vector<long>& classes);
 
-    virtual std::string produceStatFileContents(const std::string &datafileName);
+    virtual std::string produceStatFileContents(const std::string &datafileName, const std::vector<long>& classes);
 
     std::map<DataPoint, PointStatistics> pointStatistics;
 
@@ -92,7 +95,7 @@ public:
 
     virtual void generateOutFile(const std::string &prefix, const std::string &datafileName);
 
-    virtual void generateStatFile(const std::string &prefix, const std::string &datafileName);
+    virtual void generateStatFile(const std::string &prefix, const std::string &datafileName, const std::vector<long>& classes);
 };
 
 enum ReferencePointType {
@@ -112,7 +115,7 @@ public:
 
     void generateOutFile(const std::string &prefix, const std::string &datafileName) override;
 
-    void generateStatFile(const std::string &prefix, const std::string &datafileName) override;
+    void generateStatFile(const std::string &prefix, const std::string &datafileName, const std::vector<long> & classes) override;
 
 private:
     DataPoint refPoint;
@@ -128,7 +131,7 @@ private:
     std::chrono::high_resolution_clock::duration sortResPointTableDuration = {};
 
 protected:
-    std::string produceStatFileContents(const std::string &datafileName) override;
+    std::string produceStatFileContents(const std::string &datafileName, const std::vector<long> & classes) override;
 
 private:
 
