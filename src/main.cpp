@@ -55,8 +55,8 @@ int main(int argc, char* argv[]) {
   std::vector<ReferencePointType> references = {MIN, MAX};
 
 
-    DBScan result = DBScan(data, distanceHandler, minPts, eps);
-//  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, refPoint);
+//    DBScan result = DBScan(data, distanceHandler, minPts, eps);
+  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, refPoint);
 //  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, MAX);
 //  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, MIN);
 //  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, references);
