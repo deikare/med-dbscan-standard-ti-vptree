@@ -48,16 +48,16 @@ double vectorMedian(std::vector<T> &v) {
   return med;
 }
 
-int factorial(int n);
+unsigned long factorial(unsigned long n);
 
-int binomialCoefficient(int n, int k);
+unsigned long binomialCoefficient(unsigned long n, unsigned long k);
 
 /** @brief Function calculates Rand index
  * @param base_classes reference to real classes given in datafile
  * @param found_classes reference to classes found by an algorithm
  * @returns Rand index value
  */
-double calculateRandIndex(const std::vector<int> &base_classes,
-                          const std::vector<int> &found_classes);
+std::tuple<unsigned long, unsigned long, double> calculateRandIndex(const std::vector<long> &base_classes,
+                          const std::vector<long> &found_classes);
 
 }  // namespace math

@@ -14,7 +14,7 @@ std::vector<T> concatenateVectors(std::vector<T> A, std::vector<T> B) {
   return concatenated;
 }
 
-VPTree::VPTree(const std::vector<DataPoint> &points) {
+VPTree::VPTree(const std::vector<DataPoint> &points, unsigned long & distanceCalculationCount): distanceCalculationCount(distanceCalculationCount) {
   root_ = std::make_shared<Node>();
   createTree(points);
 }
@@ -82,6 +82,7 @@ int VPTree::getVantagePointIndex_(const std::vector<DataPoint> &points) {
         auto dist = math::minkowskiDist(points.at(A_indices.at(i)),
                                         points.at(B_indices.at(j)),
                                         VP_CONST::MINKOWSKI_PARAM);
+        distanceCalculationCount++;
         distances_vec.push_back(dist);
       }
       variances_vec.push_back(math::calculateVariance(distances_vec));
@@ -102,6 +103,7 @@ int VPTree::getVantagePointIndex_(const std::vector<DataPoint> &points) {
       if (i != j) {
         auto dist = math::minkowskiDist(points.at(i), points.at(j),
                                         VP_CONST::MINKOWSKI_PARAM);
+        distanceCalculationCount++;
         distances_vec.push_back(dist);
       }
     }
@@ -124,6 +126,7 @@ double VPTree::getDistMedian_(const std::vector<DataPoint> &points,
     if (i != vantage_point_idx_local) {
       auto dist = math::minkowskiDist(points.at(vantage_point_idx_local),
                                       points.at(i), VP_CONST::MINKOWSKI_PARAM);
+      distanceCalculationCount++;
       distances.push_back(dist);
     }
   }
@@ -142,6 +145,7 @@ SplitVector VPTree::splitPointsVector_(
     if (i != vantage_point_idx_local) {
       auto dist = math::minkowskiDist(points.at(vantage_point_idx_local),
                                       points.at(i), VP_CONST::MINKOWSKI_PARAM);
+      distanceCalculationCount++;
       if (dist < mu) {
         split_vectors.leftVector.push_back(points.at(i));
         split_vectors.leftIndices.push_back(global_indices.at(i));
@@ -169,6 +173,7 @@ std::vector<std::size_t> VPTree::findNeighboursRecursive_(
     std::size_t point_id, double epsilon) {
   auto dist = math::minkowskiDist(points.at(sub_root->id), points.at(point_id),
                                   VP_CONST::MINKOWSKI_PARAM);
+  distanceCalculationCount++;
   std::vector<std::size_t> neighbours;
   if (dist <= epsilon) {
     // operator '<=' because k+NN, if satisfied then current point should be

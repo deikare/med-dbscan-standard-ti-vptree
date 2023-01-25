@@ -13,10 +13,22 @@ class DBScanVPTree : public DBScan {
 private:
     VPTree * tree;
 
+    std::chrono::high_resolution_clock::duration treeCreationDuration = {};
+    unsigned long distanceCalculationCount = 0;
+
 public:
     DBScanVPTree(const std::vector<DataPoint> &points, unsigned long minPts, double eps);
 
-    virtual ~DBScanVPTree();
+    virtual ~DBScanVPTree();protected:
+    std::string produceStatFileContents(const std::string &datafileName, const std::vector<long> &classes) override;
+
+public:
+    void generateOutFile(const std::string &prefix, const std::string &datafileName) override;
+
+    void generateStatFile(const std::string &prefix, const std::string &datafileName,
+                          const std::vector<long> &classes) override;
+
+
 };
 
 
