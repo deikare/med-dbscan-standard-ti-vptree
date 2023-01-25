@@ -34,9 +34,6 @@ private:
         std::string produceOutLine(const DataPoint& point, long clusterId);
     };
 
-    std::map<DataPoint, PointStatistics> pointStatistics;
-
-    void addToDistanceCalculationCount(const DataPoint& point, unsigned long increment);
     void setNeighbourhood(const DataPoint& point, const std::set<DataPoint>& neighbourhood);
     void setPointType(const DataPoint& point, int8_t type);
 
@@ -48,6 +45,8 @@ protected:
     void
     addToResultIfNeighbour(const DataPoint &point, const DataPoint &potentialNeighbour, std::set<DataPoint> &result,
                            const std::function<double(DataPoint, DataPoint)> &distanceHandler) const;
+    void addToDistanceCalculationCount(const DataPoint& point, unsigned long increment);
+
 
     const double eps;
 
@@ -55,19 +54,22 @@ protected:
                            const std::function<std::set<DataPoint>(DataPoint)> &neighboursHandler);
     void generateOutFile(const std::string& prefix, const std::string& datafileName, const std::string& algorithmVersion);
 
+    std::map<DataPoint, PointStatistics> pointStatistics;
 public:
     DBScan(const std::vector<DataPoint> &points, const std::function<double(DataPoint, DataPoint)> &distanceHandler,
            unsigned int minPts, double eps);
 
     void printResultToFile(const std::string &filename);
 
-    void generateOutFile(const std::string& prefix, const std::string& datafileName);
+    virtual void generateOutFile(const std::string& prefix, const std::string& datafileName);
 };
 
 class DBScanTi : public DBScan {
 public:
     DBScanTi(const std::vector<DataPoint> &points, const std::function<double(DataPoint, DataPoint)> &distanceHandler,
              double eps, unsigned int minPts, DataPoint refPoint);
+
+    void generateOutFile(const std::string &prefix, const std::string &datafileName) override;
 
 private:
     const DataPoint refPoint;

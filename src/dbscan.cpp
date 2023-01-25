@@ -187,11 +187,14 @@ DBScanTi::neighboursTI(const DataPoint &point, std::map<DataPoint, double, DBSca
     auto iterator = referenceTable.find(point);
     auto referencedDistance = iterator->second;
 
+    unsigned long distanceCalculationCount = 0;
+
     auto rend = referenceTable.rend();
     std::map<DataPoint, double, DBScanTi::dontCompare>::reverse_iterator reverseIterator(iterator);
     for (reverseIterator++; reverseIterator != rend; reverseIterator++) {
         if (referencedDistance - reverseIterator->second <= eps) {
             addToResultIfNeighbour(point, reverseIterator->first, result, distanceHandler);
+            distanceCalculationCount++;
         } else break;
     }
 
@@ -199,10 +202,17 @@ DBScanTi::neighboursTI(const DataPoint &point, std::map<DataPoint, double, DBSca
     for (iterator++; iterator != end; iterator++) {
         if (iterator->second - referencedDistance <= eps) {
             addToResultIfNeighbour(point, iterator->first, result, distanceHandler);
+            distanceCalculationCount++;
         } else break;
     }
 
+    addToDistanceCalculationCount(point, distanceCalculationCount);
+
     return result;
+}
+
+void DBScanTi::generateOutFile(const std::string &prefix, const std::string &datafileName) {
+    DBScan::generateOutFile(prefix, datafileName, "TI-DBSCAN");
 }
 
 DBScan::PointStatistics::PointStatistics() : id(NEXT_POINT_ID++) {

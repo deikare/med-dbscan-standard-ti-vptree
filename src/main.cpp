@@ -53,8 +53,8 @@ int main(int argc, char* argv[]) {
   unsigned int minPts = 5;
   std::vector<double> refPoint = {0, 0};
 
-  DBScan result = DBScan(data, distanceHandler, minPts, eps);
-//  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, refPoint);
+//  DBScan result = DBScan(data, distanceHandler, minPts, eps);
+  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, refPoint);
   result.printResultToFile("../data/dbscan-result-new.csv");
   result.generateOutFile("../data", "Dane");
 
