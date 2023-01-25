@@ -18,7 +18,7 @@ add_executable(${PROJECT} ${CPP_DIR}/main.cpp
                           ${CPP_DIR}/math.cpp
                           ${CPP_DIR}/vp_tree.cpp
                           ${CPP_DIR}/analyzer.cpp
-                          ${CPP_DIR}/dbscan.cpp)
+                          ${CPP_DIR}/dbscan.cpp ${CPP_DIR}/dbscan_vp_tree.cpp)
 
 
 target_include_directories(${PROJECT} PRIVATE include)

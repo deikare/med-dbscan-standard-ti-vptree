@@ -6,6 +6,7 @@
 #include "reader.hpp"
 #include "vp_tree.hpp"
 #include "dbscan.hpp"
+#include "dbscan_vp_tree.h"
 #include "math.hpp"
 
 bool check_file(std::string file_name) {
@@ -45,21 +46,22 @@ int main(int argc, char* argv[]) {
   auto vec = vp_tree.findNeighbours(data, 3, 2.);
   time_analyzer.saveDurationNow("searching k-NN+ in VP tree");
 
-  auto distanceHandler = [](const std::vector<double>& point1, const std::vector<double>&point2) {
-      return math::minkowskiDist(point1, point2, 2);
-  };
+//  auto distanceHandler = [](const std::vector<double>& point1, const std::vector<double>&point2) {
+//      return math::minkowskiDist(point1, point2, 2);
+//  };
 
   double eps = 1; //try 1, 3
   unsigned int minPts = 5;
-  std::vector<double> refPoint = {0, 0};
-  std::vector<ReferencePointType> references = {MIN, MAX};
+//  std::vector<double> refPoint = {0, 0};
+//  std::vector<ReferencePointType> references = {MIN, MAX};
 
 
 //    DBScan result = DBScan(data, distanceHandler, minPts, eps);
 //  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, refPoint);
 //  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, MAX);
 //  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, MIN);
-  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, references);
+//  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, references);
+  DBScanVPTree result = DBScanVPTree(data, minPts, eps);
   result.printResultToFile("../data/dbscan-result-new.csv");
   result.generateOutFile("../data", "Dane");
   result.generateStatFile("../data", "Dane");

@@ -65,10 +65,10 @@ double math::calculateRandIndex(const std::vector<int> &base_classes,
   int TN = 0;
   int base_group = 0;
   int found_group = 0;
-  for (int i = 0; i < base_classes.size(); ++i) {
+  for (size_t i = 0; i < base_classes.size(); ++i) {
     base_group = base_classes.at(i);
     found_group = found_classes.at(i);
-    for (int j = i + 1; j < found_classes.size(); ++j) {
+    for (size_t j = i + 1; j < found_classes.size(); ++j) {
       if (base_group == base_classes.at(j) &&
           found_group == found_classes.at(j)) {
         TP++;

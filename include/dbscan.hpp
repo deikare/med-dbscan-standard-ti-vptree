@@ -1,3 +1,5 @@
+#pragma once
+
 #include "consts.hpp"
 #include <map>
 #include <set>
@@ -9,6 +11,7 @@
 #define NOISE (-1)
 #define BORDER 0
 #define CORE 1
+
 
 using DataPoint = std::vector<double>;
 
