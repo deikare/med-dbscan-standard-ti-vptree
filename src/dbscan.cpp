@@ -32,7 +32,9 @@ void DBScan::performClustering(const std::vector<DataPoint> &points,
                     if (seedNeighbours.size() >= minPts) {
                         setPointType(seed, CORE);
                         seeds.merge(seedNeighbours);
-                    } //seed is core
+                    } else {
+                        setPointType(seed, BORDER);
+                    }
                 } else if (entry->second == NOISE) {
                     entry->second = clusterIndex;
                     setPointType(seed, BORDER);
@@ -40,6 +42,8 @@ void DBScan::performClustering(const std::vector<DataPoint> &points,
             }
         }
     }
+
+    clusterCount = clusterIndex + 1;
 }
 
 DBScan::DBScan(const std::vector<DataPoint> &points, const std::function<double(DataPoint, DataPoint)> &distanceHandler,
@@ -57,7 +61,6 @@ DBScan::DBScan(const std::vector<DataPoint> &points, const std::function<double(
 std::set<DataPoint> DBScan::neighbours(const DataPoint &point, const std::vector<DataPoint> &points,
                                        const std::function<double(DataPoint, DataPoint)> &distanceHandler) {
     std::set<DataPoint> result;
-    pointStatistics.find(point)->second.pointType = BORDER;
     for (const auto &potentialNeighbour: points) {
         addToResultIfNeighbour(point, potentialNeighbour, result, distanceHandler);
     }
@@ -108,7 +111,7 @@ void DBScan::setNeighbourhood(const DataPoint &point, const std::set<DataPoint> 
     }
 }
 
-void DBScan::setPointType(const DataPoint &point, int8_t type) {
+void DBScan::setPointType(const DataPoint &point, int type) {
     auto entry = pointStatistics.find(point);
     entry->second.pointType = type;
 }
@@ -136,8 +139,7 @@ void DBScan::generateOutFile(const std::string &prefix, const std::string &dataf
         result += pointStatistics.find(point)->second.produceOutLine(point, clusterIndex) + "\n";
     }
 
-    std::string outFileName = (prefix.empty() ? "" : (prefix + "/"));
-    outFileName += generateFilename(prefix, "out", datafileName, algorithmVersion);
+    std::string outFileName = generateFilename(prefix, "out", datafileName, algorithmVersion);
 
     writeToFile(result, outFileName);
 }
@@ -154,12 +156,53 @@ DBScan::generateFilename(const std::string &prefix, const std::string &type, con
     return result;
 }
 
+void DBScan::generateStatFile(const std::string &prefix, const std::string &datafileName) {
+    generateStatFile(prefix, datafileName, "DBSCAN");
+}
+
+void DBScan::generateStatFile(const std::string &prefix, const std::string &datafileName,
+                              const std::string &algorithmVersion) {
+    std::string filename = generateFilename(prefix, "stat", datafileName, algorithmVersion);
+
+    std::string content = produceStatFileContents(datafileName);
+    writeToFile(content, filename);
+}
+
+std::string DBScan::produceStatFileContents(const std::string &datafileName) {
+    std::string result = datafileName + "," + std::to_string(clusterizeResult.begin()->first.size()) + "," +
+                         std::to_string(clusterizeResult.size()) + "\n";
+    result += std::to_string(minPts) + "," + std::to_string(eps) + "\n";
+    unsigned long noiseCount = 0;
+    unsigned long borderCount = 0;
+    unsigned long coreCount = 0;
+
+    for (const auto &entry: pointStatistics) {
+        auto type = entry.second.pointType;
+        if (type == NOISE)
+            noiseCount++;
+        else if (type == BORDER)
+            borderCount++;
+        else coreCount++;
+    }
+
+    result += std::to_string(clusterCount) + "," + std::to_string(noiseCount) + "," + std::to_string(coreCount) + "," +
+              std::to_string(borderCount) + "\n";
+
+    unsigned long sum = 0;
+    for (const auto &entry: pointStatistics)
+        sum += entry.second.distanceCalculationCount;
+    double mean = double(sum / pointStatistics.size());
+
+    result += std::to_string(mean) + "\n";
+    return result;
+}
+
 DBScanTi::DBScanTi(const std::vector<DataPoint> &points,
                    const std::function<double(DataPoint, DataPoint)> &distanceHandler,
                    double eps, unsigned int minPts, const DataPoint &refPoint)
         : DBScan(points, minPts, eps), refPoint(refPoint) {
     auto referenceTable = ReferenceTable(points, distanceHandler, refPoint);
-    for (const auto& point : points)
+    for (const auto &point: points)
         addToDistanceCalculationCount(point, 1); //add to each because each point is evaluated once
     auto neighboursHandler = [this, referenceTable, distanceHandler](const DataPoint &point) {
         return this->neighboursTI(point, distanceHandler, referenceTable);
@@ -205,7 +248,11 @@ void DBScanTi::generateOutFile(const std::string &prefix, const std::string &dat
     DBScan::generateOutFile(prefix, datafileName, "TI-DBSCAN");
 }
 
-DBScan::PointStatistics::PointStatistics() : id(NEXT_POINT_ID++) {
+void DBScanTi::generateStatFile(const std::string &prefix, const std::string &datafileName) {
+    DBScan::generateStatFile(prefix, datafileName, "TI-DBSCAN");
+}
+
+DBScan::PointStatistics::PointStatistics() : id(NEXT_POINT_ID++), pointType(NOISE) {
 
 }
 
@@ -233,7 +280,7 @@ DBScanTi::ReferenceTable::ReferenceTable(const std::vector<DataPoint> &points,
                                          const DataPoint &refPoint) {
     std::vector<std::pair<DataPoint, double>> resultAsVector;
 
-    for (const auto& point : points)
+    for (const auto &point: points)
         resultAsVector.emplace_back(point, distanceHandler(point, refPoint));
 
     std::sort(resultAsVector.begin(), resultAsVector.end(),
@@ -243,7 +290,7 @@ DBScanTi::ReferenceTable::ReferenceTable(const std::vector<DataPoint> &points,
               });
 
     long i = 0;
-    for (const auto& entry : resultAsVector) {
+    for (const auto &entry: resultAsVector) {
         indexMap.emplace(entry.first, i);
         distancesToReference.emplace_back(entry);
         i++;
