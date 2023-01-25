@@ -7,6 +7,7 @@
 
 void DBScan::performClustering(const std::vector<DataPoint> &points,
                                const std::function<std::set<DataPoint>(DataPoint)> &neighboursHandler) {
+    clusteringStart = std::chrono::high_resolution_clock::now();
     long clusterIndex = NOISE;
 
     for (const auto &point: points) {
@@ -42,6 +43,7 @@ void DBScan::performClustering(const std::vector<DataPoint> &points,
             }
         }
     }
+    clusteringDuration = std::chrono::high_resolution_clock::now() - clusteringStart;
 
     clusterCount = clusterIndex + 1;
 }
@@ -60,11 +62,13 @@ DBScan::DBScan(const std::vector<DataPoint> &points, const std::function<double(
 
 std::set<DataPoint> DBScan::neighbours(const DataPoint &point, const std::vector<DataPoint> &points,
                                        const std::function<double(DataPoint, DataPoint)> &distanceHandler) {
+    neighbourhoodStart = std::chrono::high_resolution_clock::now();
     std::set<DataPoint> result;
     for (const auto &potentialNeighbour: points) {
         addToResultIfNeighbour(point, potentialNeighbour, result, distanceHandler);
     }
     addToDistanceCalculationCount(point, points.size());
+    neighbourhoodDuration += std::chrono::high_resolution_clock::now() - neighbourhoodStart;
     return result;
 }
 
@@ -130,6 +134,7 @@ void DBScan::writeToFile(const std::string &string, const std::string &filename)
 
 void DBScan::generateOutFile(const std::string &prefix, const std::string &datafileName,
                              const std::string &algorithmVersion) {
+    outfileStart = std::chrono::high_resolution_clock::now();
     std::string result;
 
     for (auto &iterator: clusterizeResult) {
@@ -142,6 +147,8 @@ void DBScan::generateOutFile(const std::string &prefix, const std::string &dataf
     std::string outFileName = generateFilename(prefix, "out", datafileName, algorithmVersion);
 
     writeToFile(result, outFileName);
+    outfileDuration = std::chrono::high_resolution_clock::now() - outfileStart;
+    totalDuration = std::chrono::high_resolution_clock::now() - totalStart;
 }
 
 std::string
@@ -195,6 +202,7 @@ std::string DBScan::produceStatFileContents(const std::string &datafileName) {
     double mean = double(sum / pointStatistics.size());
 
     result += std::to_string(mean) + "\n";
+//    result += std::to_string(totalDuration) + "," + std::to_string(duratio)
     return result;
 }
 

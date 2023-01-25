@@ -70,11 +70,17 @@ protected:
 
     std::map<DataPoint, PointStatistics> pointStatistics;
 
-    TimeAnalyzer timeAnalyzer = TimeAnalyzer(TIME_PRESCALER::MICRO);
-    const std::string NEIGHBOURHOOD_CALCULATION = "neighbourhood-calculation";
-    const std::string CLUSTERING = "clustering";
-    const std::string OUTFILE_CREATION = "outfile-creation";
-    const std::string TOTAL_TASK = "total-task";
+    std::chrono::high_resolution_clock::time_point totalStart = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::duration totalDuration = std::chrono::high_resolution_clock::now() - std::chrono::high_resolution_clock::now();
+
+    std::chrono::high_resolution_clock::time_point clusteringStart;
+    std::chrono::high_resolution_clock::duration clusteringDuration = std::chrono::high_resolution_clock::now() - std::chrono::high_resolution_clock::now();
+
+    std::chrono::high_resolution_clock::time_point neighbourhoodStart;
+    std::chrono::high_resolution_clock::duration neighbourhoodDuration = std::chrono::high_resolution_clock::now() - std::chrono::high_resolution_clock::now();
+
+    std::chrono::high_resolution_clock::time_point outfileStart;
+    std::chrono::high_resolution_clock::duration outfileDuration = std::chrono::high_resolution_clock::now() - std::chrono::high_resolution_clock::now();
 
 
     std::string suffix;
