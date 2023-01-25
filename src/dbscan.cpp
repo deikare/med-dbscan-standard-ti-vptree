@@ -151,8 +151,9 @@ DBScan::generateFilename(const std::string &prefix, const std::string &type, con
     result += type + "_" + algorithmVersion + "_" + datafileName + "_D" +
               std::to_string(clusterizeResult.begin()->first.size()) + "_R" +
               std::to_string(clusterizeResult.size()) + "_mP" + std::to_string(minPts) + "_E" +
-              std::to_string(eps) + ".txt";
-
+              std::to_string(eps);
+    result += (suffix.length() > 0)? ("_" + suffix) : ("");
+    result += ".txt";
     return result;
 }
 
@@ -199,8 +200,14 @@ std::string DBScan::produceStatFileContents(const std::string &datafileName) {
 
 DBScanTi::DBScanTi(const std::vector<DataPoint> &points,
                    const std::function<double(DataPoint, DataPoint)> &distanceHandler,
-                   double eps, unsigned int minPts, const DataPoint &refPoint)
-        : DBScan(points, minPts, eps), refPoint(refPoint) {
+                   double eps, unsigned int minPts, enum ReferencePointType referencePointType)
+        : DBScan(points, minPts, eps) {
+    calculateRefPoint(points, referencePointType);
+
+    if (referencePointType == MAX)
+        suffix = "rMax";
+    else suffix = "rMin";
+
     auto referenceTable = ReferenceTable(points, distanceHandler, refPoint);
     for (const auto &point: points)
         addToDistanceCalculationCount(point, 1); //add to each because each point is evaluated once
@@ -250,6 +257,75 @@ void DBScanTi::generateOutFile(const std::string &prefix, const std::string &dat
 
 void DBScanTi::generateStatFile(const std::string &prefix, const std::string &datafileName) {
     DBScan::generateStatFile(prefix, datafileName, "TI-DBSCAN");
+}
+
+void DBScanTi::calculateRefPoint(const std::vector<DataPoint> &points, enum ReferencePointType referencePointType) {
+    auto attributesNumber = points.begin()->size();
+    refPoint.clear();
+
+    for (unsigned long attribute = 0; attribute < attributesNumber; ++attribute) {
+        calculateRefPointAttribute(points, referencePointType, attribute);
+    }
+}
+
+void DBScanTi::calculateRefPoint(const std::vector<DataPoint> &points,
+                                 const std::vector<ReferencePointType> &attributeRefs) {
+    auto attributesNumber = points.begin()->size();
+    refPoint.clear();
+
+    for (unsigned long attribute = 0; attribute < attributesNumber; ++attribute) {
+        calculateRefPointAttribute(points, attributeRefs[attribute], attribute);
+    }
+
+}
+
+void
+DBScanTi::calculateRefPointAttribute(const std::vector<DataPoint> &points, enum ReferencePointType referencePointType,
+                                     unsigned long attribute) {
+    auto compare = (referencePointType == MAX) ? ([](double a, double b) { return a > b; }) : ([](double a, double b) {
+        return a < b;
+    });
+
+    auto end = points.end();
+    double extremeValue = points.begin()->at(attribute);
+
+    for (auto iter = points.begin() + 1; iter != end; iter++) {
+        double value = iter->at(attribute);
+        if (compare(value, extremeValue))
+            extremeValue = value;
+    }
+    refPoint.emplace_back(extremeValue);
+}
+
+DBScanTi::DBScanTi(const std::vector<DataPoint> &points,
+                   const std::function<double(DataPoint, DataPoint)> &distanceHandler, double eps, unsigned int minPts,
+                   const std::vector<ReferencePointType> &referencePointType) : DBScan(points, minPts, eps) {
+    calculateRefPoint(points, referencePointType);
+
+    suffix = "customLabels";
+
+    auto referenceTable = ReferenceTable(points, distanceHandler, refPoint);
+    for (const auto &point: points)
+        addToDistanceCalculationCount(point, 1); //add to each because each point is evaluated once
+    auto neighboursHandler = [this, referenceTable, distanceHandler](const DataPoint &point) {
+        return this->neighboursTI(point, distanceHandler, referenceTable);
+    };
+
+    performClustering(points, neighboursHandler);
+}
+
+DBScanTi::DBScanTi(const std::vector<DataPoint> &points,
+                   const std::function<double(DataPoint, DataPoint)> &distanceHandler, double eps, unsigned int minPts,
+                   const DataPoint &refPoint) : DBScan(points, minPts, eps), refPoint(refPoint) {
+    auto referenceTable = ReferenceTable(points, distanceHandler, refPoint);
+    for (const auto &point: points)
+        addToDistanceCalculationCount(point, 1); //add to each because each point is evaluated once
+    auto neighboursHandler = [this, referenceTable, distanceHandler](const DataPoint &point) {
+        return this->neighboursTI(point, distanceHandler, referenceTable);
+    };
+
+    performClustering(points, neighboursHandler);
+
 }
 
 DBScan::PointStatistics::PointStatistics() : id(NEXT_POINT_ID++), pointType(NOISE) {

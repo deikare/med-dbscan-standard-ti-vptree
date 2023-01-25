@@ -52,9 +52,14 @@ int main(int argc, char* argv[]) {
   double eps = 1; //try 1, 3
   unsigned int minPts = 5;
   std::vector<double> refPoint = {0, 0};
+  std::vector<ReferencePointType> references = {MIN, MAX};
 
-//  DBScan result = DBScan(data, distanceHandler, minPts, eps);
-  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, refPoint);
+
+//    DBScan result = DBScan(data, distanceHandler, minPts, eps);
+//  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, refPoint);
+//  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, MAX);
+//  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, MIN);
+  DBScanTi result = DBScanTi(data, distanceHandler, eps, minPts, references);
   result.printResultToFile("../data/dbscan-result-new.csv");
   result.generateOutFile("../data", "Dane");
   result.generateStatFile("../data", "Dane");
