@@ -136,14 +136,21 @@ void DBScan::generateOutFile(const std::string &prefix, const std::string &dataf
         result += pointStatistics.find(point)->second.produceOutLine(point, clusterIndex) + "\n";
     }
 
-    //TODO add prefix as variable
     std::string outFileName = (prefix.empty() ? "" : (prefix + "/"));
-    outFileName += "out_" + algorithmVersion + "_" + datafileName + "_D" +
-                   std::to_string(clusterizeResult.begin()->first.size()) + "_R" +
-                   std::to_string(clusterizeResult.size()) + "_mP" + std::to_string(minPts) + "_E" +
-                   std::to_string(eps) + ".txt";
+    outFileName += generateFilename(prefix, "out", datafileName, algorithmVersion);
 
     writeToFile(result, outFileName);
+}
+
+std::string
+DBScan::generateFilename(const std::string& prefix, const std::string& type, const std::string& datafileName, const std::string& algorithmVersion) {
+    std::string result = (prefix.empty() ? "" : (prefix + "/"));
+    result += type + "_" + algorithmVersion + "_" + datafileName + "_D" +
+              std::to_string(clusterizeResult.begin()->first.size()) + "_R" +
+              std::to_string(clusterizeResult.size()) + "_mP" + std::to_string(minPts) + "_E" +
+              std::to_string(eps) + ".txt";
+
+    return result;
 }
 
 DBScanTi::DBScanTi(const std::vector<DataPoint> &points,
