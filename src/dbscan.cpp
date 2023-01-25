@@ -7,7 +7,7 @@
 
 void DBScan::performClustering(const std::vector<DataPoint> &points,
                                const std::function<std::set<DataPoint>(DataPoint)> &neighboursHandler) {
-    clusteringStart = std::chrono::high_resolution_clock::now();
+    auto clusteringStart = std::chrono::high_resolution_clock::now();
     long clusterIndex = NOISE;
 
     for (const auto &point: points) {
@@ -44,7 +44,7 @@ void DBScan::performClustering(const std::vector<DataPoint> &points,
         }
     }
     clusteringDuration = std::chrono::high_resolution_clock::now() - clusteringStart;
-
+    totalDuration = std::chrono::high_resolution_clock::now() - totalStart;
     clusterCount = clusterIndex + 1;
 }
 
@@ -62,7 +62,7 @@ DBScan::DBScan(const std::vector<DataPoint> &points, const std::function<double(
 
 std::set<DataPoint> DBScan::neighbours(const DataPoint &point, const std::vector<DataPoint> &points,
                                        const std::function<double(DataPoint, DataPoint)> &distanceHandler) {
-    neighbourhoodStart = std::chrono::high_resolution_clock::now();
+    auto neighbourhoodStart = std::chrono::high_resolution_clock::now();
     std::set<DataPoint> result;
     for (const auto &potentialNeighbour: points) {
         addToResultIfNeighbour(point, potentialNeighbour, result, distanceHandler);
@@ -134,7 +134,7 @@ void DBScan::writeToFile(const std::string &string, const std::string &filename)
 
 void DBScan::generateOutFile(const std::string &prefix, const std::string &datafileName,
                              const std::string &algorithmVersion) {
-    outfileStart = std::chrono::high_resolution_clock::now();
+    auto outfileStart = std::chrono::high_resolution_clock::now();
     std::string result;
 
     for (auto &iterator: clusterizeResult) {
@@ -148,7 +148,6 @@ void DBScan::generateOutFile(const std::string &prefix, const std::string &dataf
 
     writeToFile(result, outFileName);
     outfileDuration = std::chrono::high_resolution_clock::now() - outfileStart;
-    totalDuration = std::chrono::high_resolution_clock::now() - totalStart;
 }
 
 std::string
@@ -217,7 +216,8 @@ DBScanTi::DBScanTi(const std::vector<DataPoint> &points,
         suffix = "rMax";
     else suffix = "rMin";
 
-    auto referenceTable = ReferenceTable(points, distanceHandler, refPoint);
+    auto referenceTable = ReferenceTable(points, distanceHandler, refPoint, resPointTableDuration,
+                                         sortResPointTableDuration);
     for (const auto &point: points)
         addToDistanceCalculationCount(point, 1); //add to each because each point is evaluated once
     auto neighboursHandler = [this, referenceTable, distanceHandler](const DataPoint &point) {
@@ -231,6 +231,7 @@ std::set<DataPoint>
 DBScanTi::neighboursTI(const DataPoint &point,
                        const std::function<double(const DataPoint &, const DataPoint &)> &distanceHandler,
                        const ReferenceTable &referenceTable) {
+    auto neighbourhoodStart = std::chrono::high_resolution_clock::now();
     std::set<DataPoint> result = {point};
 
     unsigned long distanceCalculationCount = 0;
@@ -256,6 +257,7 @@ DBScanTi::neighboursTI(const DataPoint &point,
     }
 
     addToDistanceCalculationCount(point, distanceCalculationCount);
+    neighbourhoodDuration += std::chrono::high_resolution_clock::now() - neighbourhoodStart;
 
     return result;
 }
@@ -313,7 +315,8 @@ DBScanTi::DBScanTi(const std::vector<DataPoint> &points,
 
     suffix = "customLabels";
 
-    auto referenceTable = ReferenceTable(points, distanceHandler, refPoint);
+    auto referenceTable = ReferenceTable(points, distanceHandler, refPoint, resPointTableDuration,
+                                         sortResPointTableDuration);
     for (const auto &point: points)
         addToDistanceCalculationCount(point, 1); //add to each because each point is evaluated once
     auto neighboursHandler = [this, referenceTable, distanceHandler](const DataPoint &point) {
@@ -326,7 +329,8 @@ DBScanTi::DBScanTi(const std::vector<DataPoint> &points,
 DBScanTi::DBScanTi(const std::vector<DataPoint> &points,
                    const std::function<double(DataPoint, DataPoint)> &distanceHandler, double eps, unsigned int minPts,
                    const DataPoint &refPoint) : DBScan(points, minPts, eps), refPoint(refPoint) {
-    auto referenceTable = ReferenceTable(points, distanceHandler, refPoint);
+    auto referenceTable = ReferenceTable(points, distanceHandler, refPoint, resPointTableDuration,
+                                         sortResPointTableDuration);
     for (const auto &point: points)
         addToDistanceCalculationCount(point, 1); //add to each because each point is evaluated once
     auto neighboursHandler = [this, referenceTable, distanceHandler](const DataPoint &point) {
@@ -335,6 +339,14 @@ DBScanTi::DBScanTi(const std::vector<DataPoint> &points,
 
     performClustering(points, neighboursHandler);
 
+}
+
+std::string DBScanTi::produceStatFileContents(const std::string &datafileName) {
+    auto result = DBScan::produceStatFileContents(datafileName);
+    result += +"\n" + std::to_string(refPoint.size()) + "\n";
+    result += std::to_string(resPointTableDuration.count()) + "," + std::to_string(sortResPointTableDuration.count()) +
+              "\n";
+    return result;
 }
 
 DBScan::PointStatistics::PointStatistics() : id(NEXT_POINT_ID++), pointType(NOISE) {
@@ -360,27 +372,27 @@ std::string DBScan::PointStatistics::produceOutLine(const DataPoint &point, long
 }
 
 
-DBScanTi::ReferenceTable::ReferenceTable(const std::vector<DataPoint> &points,
-                                         const std::function<double(DataPoint, DataPoint)> &distanceHandler,
-                                         const DataPoint &refPoint) {
-    std::vector<std::pair<DataPoint, double>> resultAsVector;
-
-    for (const auto &point: points)
-        resultAsVector.emplace_back(point, distanceHandler(point, refPoint));
-
-    std::sort(resultAsVector.begin(), resultAsVector.end(),
-              [](const std::pair<DataPoint, double> &a,
-                 const std::pair<DataPoint, double> &b) {
-                  return a.second < b.second;
-              });
-
-    long i = 0;
-    for (const auto &entry: resultAsVector) {
-        indexMap.emplace(entry.first, i);
-        distancesToReference.emplace_back(entry);
-        i++;
-    }
-}
+//DBScanTi::ReferenceTable::ReferenceTable(const std::vector<DataPoint> &points,
+//                                         const std::function<double(DataPoint, DataPoint)> &distanceHandler,
+//                                         const DataPoint &refPoint) {
+//    std::vector<std::pair<DataPoint, double>> resultAsVector;
+//
+//    for (const auto &point: points)
+//        resultAsVector.emplace_back(point, distanceHandler(point, refPoint));
+//
+//    std::sort(resultAsVector.begin(), resultAsVector.end(),
+//              [](const std::pair<DataPoint, double> &a,
+//                 const std::pair<DataPoint, double> &b) {
+//                  return a.second < b.second;
+//              });
+//
+//    long i = 0;
+//    for (const auto &entry: resultAsVector) {
+//        indexMap.emplace(entry.first, i);
+//        distancesToReference.emplace_back(entry);
+//        i++;
+//    }
+//}
 
 std::vector<std::pair<DataPoint, double>>::const_iterator
 DBScanTi::ReferenceTable::iterator(const DataPoint &point) const {
@@ -400,4 +412,32 @@ std::vector<std::pair<DataPoint, double>>::const_iterator DBScanTi::ReferenceTab
 
 std::vector<std::pair<DataPoint, double>>::const_reverse_iterator DBScanTi::ReferenceTable::rend() const {
     return distancesToReference.crend();
+}
+
+DBScanTi::ReferenceTable::ReferenceTable(const std::vector<DataPoint> &points,
+                                         const std::function<double(DataPoint, DataPoint)> &distanceHandler,
+                                         const DataPoint &refPoint,
+                                         std::chrono::high_resolution_clock::duration &resPointTableDuration,
+                                         std::chrono::high_resolution_clock::duration &sortResPointTableDuration) {
+    std::vector<std::pair<DataPoint, double>> resultAsVector;
+
+    auto resPointTableCreationStart = std::chrono::high_resolution_clock::now();
+    for (const auto &point: points)
+        resultAsVector.emplace_back(point, distanceHandler(point, refPoint));
+    resPointTableDuration = std::chrono::high_resolution_clock::now() - resPointTableCreationStart;
+
+    auto sortStart = std::chrono::high_resolution_clock::now();
+    std::sort(resultAsVector.begin(), resultAsVector.end(),
+              [](const std::pair<DataPoint, double> &a,
+                 const std::pair<DataPoint, double> &b) {
+                  return a.second < b.second;
+              });
+    sortResPointTableDuration = std::chrono::high_resolution_clock::now() - sortStart;
+
+    long i = 0;
+    for (const auto &entry: resultAsVector) {
+        indexMap.emplace(entry.first, i);
+        distancesToReference.emplace_back(entry);
+        i++;
+    }
 }
