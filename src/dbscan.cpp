@@ -159,7 +159,7 @@ DBScan::generateFilename(const std::string &prefix, const std::string &type, con
               std::to_string(clusterizeResult.begin()->first.size()) + "_R" +
               std::to_string(clusterizeResult.size()) + "_mP" + std::to_string(minPts) + "_E" +
               std::to_string(eps);
-    result += (suffix.length() > 0)? ("_" + suffix) : ("");
+    result += (suffix.length() > 0) ? ("_" + suffix) : ("");
     result += ".txt";
     return result;
 }
@@ -202,7 +202,8 @@ std::string DBScan::produceStatFileContents(const std::string &datafileName) {
     double mean = double(sum / pointStatistics.size());
 
     result += std::to_string(mean) + "\n";
-//    result += std::to_string(totalDuration) + "," + std::to_string(duratio)
+    result += std::to_string(totalDuration.count()) + "," + std::to_string(clusteringDuration.count()) + "," +
+              std::to_string(outfileDuration.count()) + "," + std::to_string(neighbourhoodDuration.count());
     return result;
 }
 
