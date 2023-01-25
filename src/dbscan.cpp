@@ -143,7 +143,8 @@ void DBScan::generateOutFile(const std::string &prefix, const std::string &dataf
 }
 
 std::string
-DBScan::generateFilename(const std::string& prefix, const std::string& type, const std::string& datafileName, const std::string& algorithmVersion) {
+DBScan::generateFilename(const std::string &prefix, const std::string &type, const std::string &datafileName,
+                         const std::string &algorithmVersion) {
     std::string result = (prefix.empty() ? "" : (prefix + "/"));
     result += type + "_" + algorithmVersion + "_" + datafileName + "_D" +
               std::to_string(clusterizeResult.begin()->first.size()) + "_R" +
@@ -155,49 +156,31 @@ DBScan::generateFilename(const std::string& prefix, const std::string& type, con
 
 DBScanTi::DBScanTi(const std::vector<DataPoint> &points,
                    const std::function<double(DataPoint, DataPoint)> &distanceHandler,
-                   double eps, unsigned int minPts, DataPoint refPoint)
-        : DBScan(points, minPts, eps), refPoint(std::move(refPoint)) {
-
-    auto table = generateReferenceTable(points, distanceHandler);
-
-    auto neighboursHandler = [this, distanceHandler, table](const DataPoint &point) {
-        return this->neighboursTI(point, table, distanceHandler);
+                   double eps, unsigned int minPts, const DataPoint &refPoint)
+        : DBScan(points, minPts, eps), refPoint(refPoint) {
+    auto referenceTable = ReferenceTable(points, distanceHandler, refPoint);
+    for (const auto& point : points)
+        addToDistanceCalculationCount(point, 1); //add to each because each point is evaluated once
+    auto neighboursHandler = [this, referenceTable, distanceHandler](const DataPoint &point) {
+        return this->neighboursTI(point, distanceHandler, referenceTable);
     };
 
     performClustering(points, neighboursHandler);
 }
 
-std::map<DataPoint, double, DBScanTi::dontCompare>
-DBScanTi::generateReferenceTable(const std::vector<DataPoint> &points,
-                                 const std::function<double(DataPoint,
-                                                            DataPoint)> &distanceHandler) {
-    std::vector<std::pair<DataPoint, double>> resultAsVector;
-    for (const auto &point: points)
-        resultAsVector.emplace_back(point, distanceHandler(point, refPoint));
-
-    std::sort(resultAsVector.begin(), resultAsVector.end(),
-              [](const std::pair<DataPoint, double> &a, const std::pair<DataPoint, double> &b) {
-                  return a.second > b.second;
-              });
-
-    std::map<DataPoint, double, dontCompare> result;
-    for (const auto &pair: resultAsVector)
-        result.emplace(pair.first, pair.second);
-    return result;
-}
-
 std::set<DataPoint>
-DBScanTi::neighboursTI(const DataPoint &point, std::map<DataPoint, double, DBScanTi::dontCompare> referenceTable,
-                       const std::function<double(const DataPoint &, const DataPoint &)> &distanceHandler) {
+DBScanTi::neighboursTI(const DataPoint &point,
+                       const std::function<double(const DataPoint &, const DataPoint &)> &distanceHandler,
+                       const ReferenceTable &referenceTable) {
     std::set<DataPoint> result = {point};
-
-    auto iterator = referenceTable.find(point);
-    auto referencedDistance = iterator->second;
 
     unsigned long distanceCalculationCount = 0;
 
+    auto iterator = referenceTable.iterator(point);
+    double referencedDistance = iterator->second;
+
     auto rend = referenceTable.rend();
-    std::map<DataPoint, double, DBScanTi::dontCompare>::reverse_iterator reverseIterator(iterator);
+    auto reverseIterator = referenceTable.reverseIterator(point);
     for (reverseIterator++; reverseIterator != rend; reverseIterator++) {
         if (referencedDistance - reverseIterator->second <= eps) {
             addToResultIfNeighbour(point, reverseIterator->first, result, distanceHandler);
@@ -245,4 +228,44 @@ std::string DBScan::PointStatistics::produceOutLine(const DataPoint &point, long
 }
 
 
+DBScanTi::ReferenceTable::ReferenceTable(const std::vector<DataPoint> &points,
+                                         const std::function<double(DataPoint, DataPoint)> &distanceHandler,
+                                         const DataPoint &refPoint) {
+    std::vector<std::pair<DataPoint, double>> resultAsVector;
 
+    for (const auto& point : points)
+        resultAsVector.emplace_back(point, distanceHandler(point, refPoint));
+
+    std::sort(resultAsVector.begin(), resultAsVector.end(),
+              [](const std::pair<DataPoint, double> &a,
+                 const std::pair<DataPoint, double> &b) {
+                  return a.second < b.second;
+              });
+
+    long i = 0;
+    for (const auto& entry : resultAsVector) {
+        indexMap.emplace(entry.first, i);
+        distancesToReference.emplace_back(entry);
+        i++;
+    }
+}
+
+std::vector<std::pair<DataPoint, double>>::const_iterator
+DBScanTi::ReferenceTable::iterator(const DataPoint &point) const {
+    auto index = indexMap.find(point)->second;
+    return distancesToReference.cbegin() + index;
+}
+
+std::vector<std::pair<DataPoint, double>>::const_reverse_iterator
+DBScanTi::ReferenceTable::reverseIterator(const DataPoint &point) const {
+    auto index = indexMap.find(point)->second;
+    return distancesToReference.crbegin() + (indexMap.size() - index - 1);
+}
+
+std::vector<std::pair<DataPoint, double>>::const_iterator DBScanTi::ReferenceTable::end() const {
+    return distancesToReference.cend();
+}
+
+std::vector<std::pair<DataPoint, double>>::const_reverse_iterator DBScanTi::ReferenceTable::rend() const {
+    return distancesToReference.crend();
+}
