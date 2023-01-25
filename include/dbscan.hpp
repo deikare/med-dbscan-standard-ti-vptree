@@ -6,6 +6,8 @@
 #include <string>
 
 #define NOISE (-1)
+#define BORDER 0
+#define CORE 1
 
 using DataPoint = std::vector<double>;
 
@@ -17,9 +19,23 @@ private:
     std::set<DataPoint> neighbours(const DataPoint &point, const std::vector<DataPoint> &points,
                                    const std::function<double(DataPoint, DataPoint)> &distanceHandler);
 
+    void initializePointStatistics(const std::vector<DataPoint> &points);
+
+    class PointStatistics {
+    public:
+        static unsigned long NEXT_POINT_ID;
+        const unsigned long id;
+        unsigned long distanceCalculationCount = 0;
+        int8_t pointType = NOISE; //default
+        std::set<unsigned long> neighbourhood;
+
+        explicit PointStatistics();
+    };
+
+    std::map<DataPoint, PointStatistics> pointStatistics;
 
 protected:
-    DBScan(unsigned long minPts, double eps);
+    DBScan(const std::vector<DataPoint> &points, unsigned long minPts, double eps);
 
     void
     addToResultIfNeighbour(const DataPoint &point, const DataPoint &potentialNeighbour, std::set<DataPoint> &result,
@@ -34,8 +50,9 @@ public:
     DBScan(const std::vector<DataPoint> &points, const std::function<double(DataPoint, DataPoint)> &distanceHandler,
            unsigned int minPts, double eps);
 
-
     void printResultToFile(const std::string &filename);
+
+    void generateOutFile();
 };
 
 class DBScanTi : public DBScan {

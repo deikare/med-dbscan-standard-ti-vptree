@@ -37,9 +37,12 @@ void DBScan::performClustering(const std::vector<DataPoint> &points,
 
 DBScan::DBScan(const std::vector<DataPoint> &points, const std::function<double(DataPoint, DataPoint)> &distanceHandler,
                unsigned int minPts, double eps) : minPts(minPts), eps(eps) {
+    initializePointStatistics(points);
+
     auto neighboursHandler = [this, distanceHandler, points](const DataPoint &point) {
         return this->neighbours(point, points, distanceHandler);
     };
+
 
     performClustering(points, neighboursHandler);
 }
@@ -75,13 +78,21 @@ void DBScan::printResultToFile(const std::string &filename) {
     file.close();
 }
 
-DBScan::DBScan(const unsigned long minPts, const double eps) : minPts(minPts), eps(eps) {}
+void DBScan::initializePointStatistics(const std::vector<DataPoint> &points) {
+    PointStatistics::NEXT_POINT_ID = 0;
+    for (const auto &point: points)
+        pointStatistics.emplace(point, PointStatistics());
+}
+
+DBScan::DBScan(const std::vector<DataPoint> &points, unsigned long minPts, double eps) : minPts(minPts), eps(eps) {
+    initializePointStatistics(points);
+}
 
 
 DBScanTi::DBScanTi(const std::vector<DataPoint> &points,
                    const std::function<double(DataPoint, DataPoint)> &distanceHandler,
                    double eps, unsigned int minPts, DataPoint refPoint)
-        : DBScan(minPts, eps), refPoint(std::move(refPoint)) {
+        : DBScan(points, minPts, eps), refPoint(std::move(refPoint)) {
 
     auto table = generateReferenceTable(points, distanceHandler);
 
@@ -135,4 +146,8 @@ DBScanTi::neighboursTI(const DataPoint &point, std::map<DataPoint, double, DBSca
     }
 
     return result;
+}
+
+DBScan::PointStatistics::PointStatistics() : id(NEXT_POINT_ID++) {
+
 }
