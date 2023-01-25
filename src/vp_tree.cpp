@@ -170,7 +170,7 @@ std::vector<std::size_t> VPTree::findNeighboursRecursive_(
   auto dist = math::minkowskiDist(points.at(sub_root->id), points.at(point_id),
                                   VP_CONST::MINKOWSKI_PARAM);
   std::vector<std::size_t> neighbours;
-  if (dist <= epsilon && sub_root->id != point_id) {
+  if (dist <= epsilon) {
     // operator '<=' because k+NN, if satisfied then current point should be
     // added to k+NN
     neighbours.push_back(sub_root->id);
