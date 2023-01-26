@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
         std::cout << "File " << filename << " cannot be opened \n";
         return 1;
     }
-    int ignore_lines;
+    int ignore_lines = -1;
     if (parser.cmdOptionExists("-i"))
         ignore_lines = stoi(parser.getCmdOption("-i"));
 
@@ -50,11 +50,11 @@ int main(int argc, char *argv[]) {
 //    auto vec = vp_tree.findNeighbours(data, 3, 2.);
 //    time_analyzer.saveDurationNow("searching k-NN+ in VP tree");
 //
-  auto distanceHandler = [](const std::vector<double>& point1, const std::vector<double>&point2) {
-      return math::minkowskiDist(point1, point2, 2);
-  };
+//  auto distanceHandler = [](const std::vector<double>& point1, const std::vector<double>&point2) {
+//      return math::minkowskiDist(point1, point2, 2);
+//  };
 
-    double eps = 1; //try 1, 3
+    double eps = 0.45; //try 1, 3
     unsigned int minPts = 5;
   std::vector<double> refPoint = {0, 0};
   std::vector<ReferencePointType> references = {MIN, MAX};

@@ -13,7 +13,7 @@ double math::minkowskiDist(const DataPoint &point1, const DataPoint &point2,
 }
 
 double math::calculateMean(const std::vector<double> &points) {
-  double mean;
+  double mean = 0;
   for (auto point : points) {
     mean += point;
   }
@@ -23,7 +23,7 @@ double math::calculateMean(const std::vector<double> &points) {
 
 double math::calculateVariance(const std::vector<double> &points) {
   double mean = calculateMean(points);
-  double variance;
+  double variance = 0;
   for (std::size_t i = 0; i < points.size(); ++i) {
     variance += pow(points[i] - mean, 2);
   }
@@ -56,7 +56,10 @@ unsigned long math::factorial(unsigned long n) {
 
 unsigned long math::binomialCoefficient(unsigned long n, unsigned long k) {
   if (n < k) throw std::runtime_error("binomial params not correct");
-  return factorial(n) / (factorial(k) * factorial(n - k));
+  unsigned long numerator = 1;
+  for (unsigned long x = n-k + 1; x <= n; x++)
+      numerator *= x;
+  return numerator / (factorial(k));
 }
 
 std::tuple<unsigned long, unsigned long, double> math::calculateRandIndex(const std::vector<long> &base_classes,

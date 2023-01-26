@@ -8,7 +8,12 @@ auto CSVReader::stripLine_(std::string line) -> std::vector<double> {
   while (ss.good()) {
     std::string substr;
     getline(ss, substr, ',');
-    values.push_back(stod(substr));
+    try {
+        values.push_back(stod(substr));
+    }
+    catch (const std::invalid_argument &) {
+        values.push_back(substr[0]);
+    }
   }
   return values;
 }
