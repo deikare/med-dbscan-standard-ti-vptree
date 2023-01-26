@@ -360,7 +360,6 @@ std::string DBScanTi::produceStatFileContents(const std::string &datafileName, c
         result += std::to_string(entry) + ",";
     result.pop_back();
     result += "]\n";
-    result += std::to_string(refPoint.size()) + "\n"; //TODO
     result += "refPointTableCreationTime: " + std::to_string(resPointTableDuration.count()) + ", sortTime: " + std::to_string(sortResPointTableDuration.count()) +
               "\n";
     return result;
