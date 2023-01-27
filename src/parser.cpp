@@ -43,4 +43,5 @@ void Parser::printHelp() {
   std::cout << "-e epsilon, default = 1 \n";
   std::cout << "-m minPts, default = 2 \n";
   std::cout << "-rv [min|max|point=0,0,...,0|refOpts=min,max,...,max] - specify reference point type for TI, default = max \n";
+  std::cout << "-p minkowskiParameter - specify minkowskiParameter for distance calculation, default = 2\n";
 }
