@@ -32,7 +32,15 @@ bool Parser::allArgsSet() {
 
 void Parser::printHelp() {
   std::cout << "Program options: \n";
-  std::cout << "-h get help \n";
+  std::cout << "-h get help \n\n";
+
+  std::cout << "Obligatory: \n";
   std::cout << "-f provide filename \n";
-  std::cout << "-i ignore n initial lines of file \n";
+  std::cout << "-i ignore n initial lines of file \n\n";
+
+  std::cout << "Optional: \n";
+  std::cout << "-a [std|ti|vp] - algorithm version, default = std\n";
+  std::cout << "-e epsilon, default = 1 \n";
+  std::cout << "-m minPts, default = 2 \n";
+  std::cout << "-rv [min|max|point=0,0,...,0|refOpts=min,max,...,max] - specify reference point type for TI, default = max \n";
 }
