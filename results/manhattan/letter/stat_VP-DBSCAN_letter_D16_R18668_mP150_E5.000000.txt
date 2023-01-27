@@ -1,0 +1,8 @@
+Datafile: letter, attributes: 16, samples: 18668
+minPts: 150, eps: 5.000000
+clusters: 0, noisePts: 18668, corePts: 0, borderPts: 0
+Mean distance count: 0.000000
+Total duration: 3658169281, clustering: 2524058812, outfileCreation: 64290359,neighbourhoodCalculation: 2434269985
+TP: 7689021, TN: 0, rand: 0.038447S1: 50, S2: 50
+tree creation time: 1126075641
+mean distanceCalculationCount: 10724031

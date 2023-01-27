@@ -1,0 +1,8 @@
+Datafile: DS-850, attributes: 2, samples: 850
+minPts: 5, eps: 0.450000
+clusters: 19, noisePts: 11, corePts: 828, borderPts: 11
+Mean distance count: 114.000000
+Total duration: 27097194, clustering: 26406445, outfileCreation: 1637095,neighbourhoodCalculation: 20369440
+TP: 35883, TN: 284146, rand: 0.886937
+refPoint: [-0.742821,-0.093585]
+refPointTableCreationTime: 114118, sortTime: 35227
