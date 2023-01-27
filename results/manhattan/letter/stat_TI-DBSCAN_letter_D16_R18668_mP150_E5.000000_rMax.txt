@@ -1,0 +1,8 @@
+Datafile: letter, attributes: 16, samples: 18668
+minPts: 150, eps: 5.000000
+clusters: 0, noisePts: 18668, corePts: 0, borderPts: 0
+Mean distance count: 5730.000000
+Total duration: 38443590759, clustering: 38407624431, outfileCreation: 62070140,neighbourhoodCalculation: 38287801830
+TP: 7689021, TN: 0, rand: 0.038447
+refPoint: [15.000000,15.000000,15.000000,15.000000,15.000000,15.000000,15.000000,15.000000,15.000000,15.000000,15.000000,15.000000,15.000000,15.000000,15.000000,15.000000]
+refPointTableCreationTime: 6470752, sortTime: 672013

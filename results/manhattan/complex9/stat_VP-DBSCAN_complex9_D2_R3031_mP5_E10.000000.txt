@@ -1,0 +1,8 @@
+Datafile: complex9, attributes: 2, samples: 3031
+minPts: 5, eps: 10.000000
+clusters: 310, noisePts: 607, corePts: 1758, borderPts: 666
+Mean distance count: 0.000000
+Total duration: 76845861, clustering: 14820218, outfileCreation: 3126327,neighbourhoodCalculation: 11231276
+TP: 48973, TN: 3588352, rand: 0.792106S1: 50, S2: 50
+tree creation time: 61474310
+mean distanceCalculationCount: 741367

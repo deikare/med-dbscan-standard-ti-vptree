@@ -1,0 +1,6 @@
+Datafile: data, attributes: 2, samples: 3031
+minPts: 5, eps: 10.000000
+clusters: 197, noisePts: 135, corePts: 2601, borderPts: 295
+Mean distance count: 3031.000000
+Total duration: 685745074, clustering: 685158432, outfileCreation: 3092119,neighbourhoodCalculation: 678179908
+TP: 93542, TN: 3731133, rand: 0.832906
