@@ -14,7 +14,7 @@ std::vector<T> concatenateVectors(std::vector<T> A, std::vector<T> B) {
   return concatenated;
 }
 
-VPTree::VPTree(const std::vector<DataPoint> &points, unsigned long & distanceCalculationCount): distanceCalculationCount(distanceCalculationCount) {
+VPTree::VPTree(const std::vector<DataPoint> &points, unsigned long & distanceCalculationCount, unsigned minkowskiParam): distanceCalculationCount(distanceCalculationCount), minkowskiParam(minkowskiParam) {
   root_ = std::make_shared<Node>();
   createTree(points);
 }
@@ -81,7 +81,7 @@ int VPTree::getVantagePointIndex_(const std::vector<DataPoint> &points) {
       for (int j = 0; j < VP_CONST::B_SUBSET_CARDINALITY; ++j) {
         auto dist = math::minkowskiDist(points.at(A_indices.at(i)),
                                         points.at(B_indices.at(j)),
-                                        VP_CONST::MINKOWSKI_PARAM);
+                                        minkowskiParam);
         distanceCalculationCount++;
         distances_vec.push_back(dist);
       }
@@ -102,7 +102,7 @@ int VPTree::getVantagePointIndex_(const std::vector<DataPoint> &points) {
     for (std::size_t j = 0; j < points.size(); ++j) {
       if (i != j) {
         auto dist = math::minkowskiDist(points.at(i), points.at(j),
-                                        VP_CONST::MINKOWSKI_PARAM);
+                                        minkowskiParam);
         distanceCalculationCount++;
         distances_vec.push_back(dist);
       }
@@ -125,7 +125,7 @@ double VPTree::getDistMedian_(const std::vector<DataPoint> &points,
   for (std::size_t i = 0; i < points.size(); ++i) {
     if (i != vantage_point_idx_local) {
       auto dist = math::minkowskiDist(points.at(vantage_point_idx_local),
-                                      points.at(i), VP_CONST::MINKOWSKI_PARAM);
+                                      points.at(i), minkowskiParam);
       distanceCalculationCount++;
       distances.push_back(dist);
     }
@@ -144,7 +144,7 @@ SplitVector VPTree::splitPointsVector_(
   for (std::size_t i = 0; i < points.size(); ++i) {
     if (i != vantage_point_idx_local) {
       auto dist = math::minkowskiDist(points.at(vantage_point_idx_local),
-                                      points.at(i), VP_CONST::MINKOWSKI_PARAM);
+                                      points.at(i), minkowskiParam);
       distanceCalculationCount++;
       if (dist < mu) {
         split_vectors.leftVector.push_back(points.at(i));
@@ -172,7 +172,7 @@ std::vector<std::size_t> VPTree::findNeighboursRecursive_(
     std::shared_ptr<Node> sub_root, const std::vector<DataPoint> &points,
     std::size_t point_id, double epsilon) {
   auto dist = math::minkowskiDist(points.at(sub_root->id), points.at(point_id),
-                                  VP_CONST::MINKOWSKI_PARAM);
+                                  minkowskiParam);
   distanceCalculationCount++;
   std::vector<std::size_t> neighbours;
   if (dist <= epsilon) {

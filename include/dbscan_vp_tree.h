@@ -17,7 +17,7 @@ private:
     unsigned long distanceCalculationCount = 0;
 
 public:
-    DBScanVPTree(const std::vector<DataPoint> &points, unsigned long minPts, double eps);
+    DBScanVPTree(const std::vector<DataPoint> &points, unsigned long minPts, double eps, unsigned minkowskiParam);
 
     virtual ~DBScanVPTree();protected:
     std::string produceStatFileContents(const std::string &datafileName, const std::vector<long> &classes) override;

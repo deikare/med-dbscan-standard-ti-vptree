@@ -12,8 +12,4 @@ namespace VP_CONST {
 const int A_SUBSET_CARDINALITY = 50;
 /** Cardinality of subset B in random distance variance calculation */
 const int B_SUBSET_CARDINALITY = 50;
-
-/** Parameter of Minkowski distance calculation */
-const int MINKOWSKI_PARAM = 2;
-
 }  // namespace VP_CONST

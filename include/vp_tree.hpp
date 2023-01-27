@@ -27,6 +27,8 @@ struct SplitVector {
  * indices of data entries */
 class VPTree {
     unsigned long & distanceCalculationCount;
+    unsigned minkowskiParam;
+
 
     std::shared_ptr<Node> root_;
   /** @brief Method returns local vantage point index */
@@ -56,7 +58,7 @@ class VPTree {
 
  public:
   /** @brief Constructor that creates VP tree for given points */
-  VPTree(const std::vector<DataPoint> &points, unsigned long & distanceCalculationCount);
+  VPTree(const std::vector<DataPoint> &points, unsigned long & distanceCalculationCount, unsigned minkowskiParam);
 
   /** @brief Method allows for recreation of VP tree for another set of data
    * @param points is dataset that will be used for creation of VP tree

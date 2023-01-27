@@ -1,10 +1,8 @@
-#include <fstream>
 #include <iostream>
 
 #include "analyzer.hpp"
 #include "parser.hpp"
 #include "reader.hpp"
-#include "vp_tree.hpp"
 #include "dbscan.hpp"
 #include "dbscan_vp_tree.h"
 #include "math.hpp"
@@ -44,6 +42,9 @@ int main(int argc, char *argv[]) {
     auto [data, classes] = csv_reader.getData(filename, true, ignore_lines);
     time_analyzer.saveDurationNow("reading csv");
 
+    unsigned minkowskiParam = 2;
+    if (parser.cmdOptionExists("-p"))
+        minkowskiParam = stoi(parser.getCmdOption("-p"));
 
     double eps = 1; //try 1, 3
     if (parser.cmdOptionExists("-e"))
@@ -53,13 +54,14 @@ int main(int argc, char *argv[]) {
     if (parser.cmdOptionExists("-m"))
         minPts = stoi(parser.getCmdOption("-m"));
 
+
     std::string baseFilename = filename.substr(filename.find_last_of("/\\") + 1);
     std::string::size_type const p(baseFilename.find_last_of('.'));
     std::string baseFilenameNoExtension = baseFilename.substr(0, p);
 
     if (algorithmVersion == "std") {
-        auto distanceHandler = [](const std::vector<double>& point1, const std::vector<double>&point2) {
-            return math::minkowskiDist(point1, point2, 2);
+        auto distanceHandler = [minkowskiParam](const std::vector<double>& point1, const std::vector<double>&point2) {
+            return math::minkowskiDist(point1, point2, minkowskiParam);
         };
 
         DBScan result = DBScan(data, distanceHandler, minPts, eps);
@@ -69,8 +71,8 @@ int main(int argc, char *argv[]) {
     }
 
     else if (algorithmVersion == "ti") {
-        auto distanceHandler = [](const std::vector<double>& point1, const std::vector<double>&point2) {
-            return math::minkowskiDist(point1, point2, 2);
+        auto distanceHandler = [minkowskiParam](const std::vector<double>& point1, const std::vector<double>&point2) {
+            return math::minkowskiDist(point1, point2, minkowskiParam);
         };
 
         std::string refPointVersion = "max";
@@ -134,7 +136,7 @@ int main(int argc, char *argv[]) {
     }
 
     else if (algorithmVersion == "vp") {
-        DBScanVPTree result = DBScanVPTree(data, minPts, eps);
+        DBScanVPTree result = DBScanVPTree(data, minPts, eps, minkowskiParam);
 
         result.printResultToFile("../data/dbscan-result-new.csv");
         result.generateOutFile("../data", baseFilenameNoExtension);

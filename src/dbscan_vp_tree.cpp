@@ -4,11 +4,11 @@
 
 #include "dbscan_vp_tree.h"
 
-DBScanVPTree::DBScanVPTree(const std::vector<DataPoint> &points, unsigned long minPts, double eps) : DBScan(points,
+DBScanVPTree::DBScanVPTree(const std::vector<DataPoint> &points, unsigned long minPts, double eps, unsigned minkowskiParam) : DBScan(points,
                                                                                                             minPts,
                                                                                                             eps) {
     auto startTime = std::chrono::high_resolution_clock::now();
-    tree = new VPTree(points, distanceCalculationCount);
+    tree = new VPTree(points, distanceCalculationCount, minkowskiParam);
     treeCreationDuration = std::chrono::high_resolution_clock::now() - startTime;
 
     auto neighboursHandler = [this, points](const DataPoint &point) {
